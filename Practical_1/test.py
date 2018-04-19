@@ -32,8 +32,6 @@ with open('questions-words.txt') as f:
 
 # %%
 for model_name, model in models.items():
-    if model_name == 'deps':
-        continue
     print('Evaluating model {}:'.format(model_name))
     total_acc = []
     total_mrr = []
@@ -43,18 +41,19 @@ for model_name, model in models.items():
         mrr = []
         total = len(data[category])
         for i, (w1, w2, w3, w4) in enumerate(data[category]):
-            try:
-                ranking = model.most_similar(positive=[w2, w3], negative=[w1], topn=1000)
-                ranking = [word for word, _ in ranking]
-
-                # Collect stats
-                acc.append(ranking[0] == w4)
+            if w4 in model:
                 try:
-                    mrr.append(1/(ranking.index(w4)+1))
-                except ValueError:
-                    mrr.append(0)
-            except KeyError:
-                continue
+                    ranking = model.most_similar(positive=[w2, w3], negative=[w1], topn=1000)
+                    ranking = [word for word, _ in ranking]
+
+                    # Collect stats
+                    acc.append(ranking[0] == w4)
+                    try:
+                        mrr.append(1/(ranking.index(w4)+1))
+                    except ValueError:
+                        mrr.append(0)
+                except KeyError:
+                    continue
 
             # Print progress bar
             if i % 10 == 0 or i+1 == total:
