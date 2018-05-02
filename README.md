@@ -3,4 +3,4 @@ Matthew van Rijn<br>
 Ruben Gerritse
 
 ### Practical 1: Evaluating Word Representations
-See Project 1/
+To run: navigate to Project 1 and open main.ipynb.
