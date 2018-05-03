@@ -2,17 +2,18 @@
 import torch
 import torch.utils.data
 import torch.nn as nn
+from tqdm import tqdm
 from torch.autograd import Variable
 
 # %% Parameters
-embed_size = 300
+embed_size = 100
 learning_rate = 0.01
-num_epochs = 2
-batch_size = 1
+num_epochs = 50
+batch_size = 512
 window = 2
 
 # %% Dataset creation
-with open("data/wa/dev.en") as f:
+with open("data/hansards/training.en") as f:
     tokens = f.read().split()
 
 vocab = list(set(tokens))
@@ -28,12 +29,6 @@ for i in range(len(tokens)):
             data.append(w2i[tokens[j]])
             labels.append(w2i[tokens[i]])
 
-X = Variable(torch.LongTensor(data))
-T = Variable(torch.LongTensor(labels))
-
-train_data = torch.utils.data.TensorDataset(X, T)
-train_loader = torch.utils.data.DataLoader(dataset=train_data, batch_size=1, shuffle=True)
-
 # %% Network Definition
 class Net(nn.Module):
     def __init__(self, vocab_size, embed_size):
@@ -46,18 +41,20 @@ class Net(nn.Module):
         out = self.embeddings(data)
         out = self.fc1(out)
         out = self.softmax(out)
-
         return out
 
 # %% Train
-net = Net(vocab_size, embed_size)
+train_data = torch.utils.data.TensorDataset(torch.LongTensor(data), torch.LongTensor(labels))
+train_loader = torch.utils.data.DataLoader(dataset=train_data, batch_size=batch_size, shuffle=True)
+
+net = Net(vocab_size, embed_size).cuda()
 loss_fn = nn.CrossEntropyLoss()
 opt = torch.optim.SGD(net.parameters(), learning_rate)
 
 for epoch in range(num_epochs):
-    for i, (inputs, targets) in enumerate(train_loader):
-        if i % 10 == 0:
-            print('\rEpoch {} {}'.format(epoch, i+1), end='')
+    for inputs, targets in tqdm(train_loader):
+        inputs = Variable(inputs).cuda()
+        targets = Variable(targets).cuda()
 
         opt.zero_grad()
         outputs = net(inputs)
@@ -67,3 +64,4 @@ for epoch in range(num_epochs):
 
 # %% Get embeddings
 embeddings = net.embeddings.weight
+vocab_size
