@@ -1,2 +1,5 @@
 data
 *.pdf
+*__pycache__*
+checkpoints
+.ipynb_checkpoints
