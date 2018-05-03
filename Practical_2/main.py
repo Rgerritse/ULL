@@ -1,16 +1,18 @@
 # %% Imports
-import torch
+import torch, os
 import torch.utils.data
 import torch.nn as nn
 from tqdm import tqdm
 from torch.autograd import Variable
+from evaluate import Evaluator
 
 # %% Parameters
 embed_size = 100
 learning_rate = 0.01
-num_epochs = 50
+num_epochs = 10
 batch_size = 512
 window = 2
+model_name = 'skipgram'
 
 # %% Dataset creation
 with open("data/hansards/training.en") as f:
@@ -43,6 +45,9 @@ class Net(nn.Module):
         out = self.softmax(out)
         return out
 
+# %% Load Evaluator
+evaluator = Evaluator(w2i, i2w, window)
+
 # %% Train
 train_data = torch.utils.data.TensorDataset(torch.LongTensor(data), torch.LongTensor(labels))
 train_loader = torch.utils.data.DataLoader(dataset=train_data, batch_size=batch_size, shuffle=True)
@@ -51,7 +56,16 @@ net = Net(vocab_size, embed_size).cuda()
 loss_fn = nn.CrossEntropyLoss()
 opt = torch.optim.SGD(net.parameters(), learning_rate)
 
-for epoch in range(num_epochs):
+# Check for saved checkpoint
+saved_epoch = 0
+checkpoints = [cp for cp in sorted(os.listdir('checkpoints')) if model_name in cp]
+if checkpoints:
+    state = torch.load('checkpoints/{}'.format(checkpoints[-1]))
+    saved_epoch = state['epoch'] + 1
+    net.load_state_dict(state['state_dict'])
+    opt.load_state_dict(state['optimizer'])
+
+for epoch in range(saved_epoch, num_epochs):
     for inputs, targets in tqdm(train_loader):
         inputs = Variable(inputs).cuda()
         targets = Variable(targets).cuda()
@@ -62,6 +76,13 @@ for epoch in range(num_epochs):
         loss = loss_fn(outputs, targets)
         opt.step()
 
+    # Save checkpoint
+    state = {
+        'epoch': epoch,
+        'state_dict': net.state_dict(),
+        'optimizer': opt.state_dict()
+    }
+    torch.save(state, 'checkpoints/{}-{}'.format(model_name, epoch))
+
 # %% Get embeddings
 embeddings = net.embeddings.weight
-vocab_size
