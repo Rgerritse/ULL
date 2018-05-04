@@ -4,6 +4,8 @@ import torch.utils.data
 import torch.nn as nn
 from torch.autograd import Variable
 from evaluate import Evaluator
+from collections import defaultdict
+import string
 
 # %% Parameters
 embed_size = 100
@@ -12,45 +14,55 @@ num_epochs = 10
 batch_size = 512
 window = 2
 model_name = 'skipgram'
+top_size = 1000 # Top n words to use for training, all other words are mapped to <unk>, use None if you do not want to map any word to <unk>
+unk = "<unk>"
 
-# %% Data selection
-word_set = set()
+# %% Construct vocabulary
+with open("data/stopwords") as fsw: # List of stopwords obtained from nltk
+    stopWords = fsw.read().split()
 
-with open("data/lst/lst.gold.candidates") as fc:
-    for line in fc.readlines():
-        split_line = line.strip().split('::')
-        word_set.add(split_line[0].split('.')[0])
-        for word in split_line[1].split(';'):
-            if len(word.split()) == 1:
-                word_set.add(word)
+counts = defaultdict(lambda: 0)
+with open("data/hansards/training.en") as f:
+    tokens = f.read().lower().split()
+    for word in tokens:
+        if not (word in stopWords or word in string.punctuation or word.isdigit()): # Filter stopwords, punctuation and digits
+            counts[word] += 1;
 
-with open("data/lst/lst_test.preprocessed") as fp:
-    for line in fp.readlines():
-        split_line = line.strip().split()
-        i = int(split_line[2])
-        sentence = split_line[3:]
-        for j in range(i-window, i+window+1):
-            if j>=0 and j<len(sentence):
-                word_set.add(sentence[j])
+sortedCounts = sorted(counts.items(), key = lambda kv: kv[1],reverse=True)[:top_size]
+if top_size != None and top_size <= len(sortedCounts):
+    vocab = set(map(lambda x: x[0], sortedCounts[:top_size]))
+else:
+    vocab = set(map(lambda x: x[0], sortedCounts))
+
+if top_size != None:
+    vocab.add(unk)
+vocab_size = len(vocab)
 
 # %% Dataset creation
 with open("data/hansards/training.en") as f:
-    tokens = [line.split() for line in f.readlines()]
+    sentences = [line.lower().split() for line in f.readlines()]
 
-vocab = list(set([token for sentence in tokens for token in sentence]))
-vocab_size = len(vocab)
 w2i = {k: v for v, k in enumerate(vocab)}
 i2w = {v: k for v, k in enumerate(vocab)}
 
 data = []
 labels = []
-for sentence in tokens:
+for sentence in sentences:
     for i in range(len(sentence)):
         for j in range(i-window, i+window+1):
             if i != j and j>=0 and j<len(sentence):
-                if sentence[i] in word_set:
-                    data.append(w2i[sentence[i]])
-                    labels.append(w2i[sentence[j]])
+                if (not (sentence[i] in stopWords or sentence[i] in string.punctuation or sentence[i].isdigit() or
+                    sentence[j] in stopWords or  sentence[j] in string.punctuation or sentence[j].isdigit())):
+                    # data.append(sentence[i])
+                    # labels.append(sentence[j])
+                    if sentence[i] in vocab:
+                        data.append(w2i[sentence[i]])
+                    else:
+                        data.append(w2i[unk])
+                    if sentence[j] in vocab:
+                        labels.append(w2i[sentence[j]])
+                    else:
+                        labels.append(w2i[unk])
 
 # %% Network Definition
 class Net(nn.Module):
@@ -115,13 +127,6 @@ for epoch in range(saved_epoch, num_epochs):
     torch.save(state, 'checkpoints/{}-{}'.format(model_name, epoch))
 
 # %% Get embeddings
-<<<<<<< HEAD
-embeddings = net.embeddings.weight
-vocab_size
-
-#%%
-=======
 embeddings = net.embeddings.weight.data
 print(embeddings)
 time.time() - start_time
->>>>>>> da9b9228c3e2b6d9560f3bc80edf3d562aac1b31
