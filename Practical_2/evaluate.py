@@ -1,7 +1,7 @@
-import nltk, string
-#nltk.download('stopwords')
-from nltk.corpus import stopwords
+import string
 from subprocess import check_output
+from torch.nn.functional import cosine_similarity
+from operator import itemgetter
 
 class Evaluator:
     def __init__(self, w2i, i2w, window_size):
@@ -11,7 +11,8 @@ class Evaluator:
         self.sentences = self.load_data()
 
     def load_data(self):
-        stop_words = set(stopwords.words('english') + list(string.punctuation))
+        with open('stopwords', 'r') as f:
+            stop_words = f.read().split()
 
         sentences = []
         with open('data/lst/lst_test.preprocessed', 'r') as f:
@@ -22,14 +23,14 @@ class Evaluator:
         with open('data/lst/lst.gold.candidates', 'r') as f:
             candidates = f.read().strip().split('\n')
             candidates = [tuple(line.split('::')) for line in candidates]
-            candidates = {word: [w for w in c.split(';') if ' ' not in w] for word, c in candidates}
+            candidates = {word: [w for w in c.split(';') if not (' ' in w or w not in self.w2i)] for word, c in candidates}
 
         for sentence in data:
             pos = int(sentence[2])
-            words = sentence[3].split()
+            words = [w if w in self.w2i else '<unk>' for w in sentence[3].split()]
             word = words[pos]
-            pre = [w for w in words[:pos] if w not in stop_words]
-            post = [w for w in words[pos+1:] if w not in stop_words]
+            pre = [w for w in words[:pos] if not (w in stop_words or w in string.punctuation or w.isdigit())]
+            post = [w for w in words[pos+1:] if not (w in stop_words or w in string.punctuation or w.isdigit())]
             context = pre[-min(len(pre), self.window_size):] + post[:min(len(post), self.window_size)]
 
             sentences.append((sentence[0], int(sentence[1]), word, context, candidates[sentence[0]]))
@@ -39,8 +40,16 @@ class Evaluator:
     def lst(self, embeddings):
         rankings = []
         for word_id, sentence_id, word, context, candidates in self.sentences:
-            rankings.append((word_id, sentence_id, [('operate', -2), ('john', -4)]))
-
+            # Compute scores
+            ranking = []
+            for candidate in candidates:
+                score = cosine_similarity(embeddings[self.w2i[word]], embeddings[self.w2i[candidate]], dim=0)
+                for context_word in context:
+                    score += cosine_similarity(embeddings[self.w2i[word]], embeddings[self.w2i[context_word]], dim=0)
+                score /= (len(context) + 1)
+                ranking.append((candidate, score))
+            ranking.sort(key=itemgetter(1))
+            rankings.append((word_id, sentence_id, ranking))
         self.write_rankings(rankings)
 
         # Get GAP

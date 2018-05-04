@@ -9,12 +9,12 @@ import string
 
 # %% Parameters
 embed_size = 100
-learning_rate = 0.01
-num_epochs = 10
-batch_size = 512
+learning_rate = 0.1
+num_epochs = 100
+batch_size = 64
 window = 2
 model_name = 'skipgram'
-top_size = 1000 # Top n words to use for training, all other words are mapped to <unk>, use None if you do not want to map any word to <unk>
+top_size = 10000 # Top n words to use for training, all other words are mapped to <unk>, use None if you do not want to map any word to <unk>
 unk = "<unk>"
 
 # %% Construct vocabulary
@@ -70,19 +70,17 @@ class Net(nn.Module):
         super(Net, self).__init__()
         self.embeddings = nn.Embedding(vocab_size, embed_size)
         self.fc1 = nn.Linear(embed_size, vocab_size)
-        self.softmax = nn.Softmax(dim=1)
 
     def forward(self, data):
         out = self.embeddings(data)
         out = self.fc1(out)
-        out = self.softmax(out)
         return out
 
 # %% Load Evaluator
 evaluator = Evaluator(w2i, i2w, window)
 
 # %% Train
-train_data = torch.utils.data.TensorDataset(torch.LongTensor(data), torch.LongTensor(labels))
+train_data = torch.utils.data.TensorDataset(torch.LongTensor(data[:100000]), torch.LongTensor(labels[:100000]))
 train_loader = torch.utils.data.DataLoader(dataset=train_data, batch_size=batch_size, shuffle=True)
 
 net = Net(vocab_size, embed_size).cuda()
@@ -91,16 +89,23 @@ opt = torch.optim.SGD(net.parameters(), learning_rate)
 
 # Check for saved checkpoint
 saved_epoch = 0
+lst_scores = []
+train_errors = []
+
 checkpoints = [cp for cp in sorted(os.listdir('checkpoints')) if model_name in cp]
 if checkpoints:
     state = torch.load('checkpoints/{}'.format(checkpoints[-1]))
     saved_epoch = state['epoch'] + 1
+    lst_scores = state['lst_err']
+    train_errors = state['train_err']
     net.load_state_dict(state['state_dict'])
     opt.load_state_dict(state['optimizer'])
 
+# %% 
 for epoch in range(saved_epoch, num_epochs):
     start_time = time.time()
     num_batches = len(train_loader)
+    total_loss = 0
     for batch, (inputs, targets) in enumerate(train_loader):
         inputs = Variable(inputs).cuda()
         targets = Variable(targets).cuda()
@@ -109,24 +114,34 @@ for epoch in range(saved_epoch, num_epochs):
         outputs = net(inputs)
 
         loss = loss_fn(outputs, targets)
+        total_loss += loss.data.item()
+        loss.backward()
         opt.step()
 
         pace = (batch+1)/(time.time() - start_time)
         print('\r[Epoch {:03d}/{:03d}] Batch {:06d}/{:06d} [{:.1f}/s] '.format(epoch+1, num_epochs, batch+1, num_batches, pace), end='')
 
     # Calculate LST score
+    total_loss /= len(train_loader)
     score = evaluator.lst(net.embeddings.weight.data)
-    print('Time: {:.1f}s Score: {:.6f}'.format(time.time() - start_time, score))
+    print('Time: {:.1f}s Loss: {:.3f} LST: {:.6f}'.format(time.time() - start_time, total_loss, score))
+
+    lst_scores.append(score)
+    train_errors.append(total_loss)
 
     # Save checkpoint
     state = {
         'epoch': epoch,
         'state_dict': net.state_dict(),
-        'optimizer': opt.state_dict()
+        'optimizer': opt.state_dict(),
+        'lst_err': lst_scores,
+        'train_err': train_errors
     }
     torch.save(state, 'checkpoints/{}-{}'.format(model_name, epoch))
 
 # %% Get embeddings
-embeddings = net.embeddings.weight.data
-print(embeddings)
-time.time() - start_time
+import importlib, evaluate
+importlib.reload(evaluate)
+evaluator = evaluate.Evaluator(w2i, i2w, window)
+x = evaluator.lst(net.embeddings.weight.data)
+x
