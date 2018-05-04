@@ -18,7 +18,7 @@ top_size = 1000 # Top n words to use for training, all other words are mapped to
 unk = "<unk>"
 
 # %% Construct vocabulary
-with open("data/stopwords") as fsw: # List of stopwords obtained from nltk
+with open("stopwords") as fsw: # List of stopwords obtained from nltk
     stopWords = fsw.read().split()
 
 counts = defaultdict(lambda: 0)
