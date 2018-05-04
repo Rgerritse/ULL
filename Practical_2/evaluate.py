@@ -48,7 +48,7 @@ class Evaluator:
                     score += cosine_similarity(embeddings[self.w2i[word]], embeddings[self.w2i[context_word]], dim=0)
                 score /= (len(context) + 1)
                 ranking.append((candidate, score))
-            ranking.sort(key=itemgetter(1))
+            ranking.sort(key=itemgetter(1), reverse=True)
             rankings.append((word_id, sentence_id, ranking))
         self.write_rankings(rankings)
 

@@ -80,7 +80,7 @@ class Net(nn.Module):
 evaluator = Evaluator(w2i, i2w, window)
 
 # %% Train
-train_data = torch.utils.data.TensorDataset(torch.LongTensor(data[:100000]), torch.LongTensor(labels[:100000]))
+train_data = torch.utils.data.TensorDataset(torch.LongTensor(data), torch.LongTensor(labels))
 train_loader = torch.utils.data.DataLoader(dataset=train_data, batch_size=batch_size, shuffle=True)
 
 net = Net(vocab_size, embed_size).cuda()
