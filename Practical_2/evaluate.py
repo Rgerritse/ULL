@@ -23,7 +23,7 @@ class Evaluator:
         with open('data/lst/lst.gold.candidates', 'r') as f:
             candidates = f.read().strip().split('\n')
             candidates = [tuple(line.split('::')) for line in candidates]
-            candidates = {word: [w for w in c.split(';') if not (' ' in w or w not in self.w2i)] for word, c in candidates}
+            candidates = {word: [w for w in c.split(';') if not ' ' in w] for word, c in candidates}
 
         for sentence in data:
             pos = int(sentence[2])
@@ -43,9 +43,15 @@ class Evaluator:
             # Compute scores
             ranking = []
             for candidate in candidates:
-                score = cosine_similarity(embeddings[self.w2i[word]], embeddings[self.w2i[candidate]], dim=0)
+                emb_word = embeddings[self.w2i[word]]
+                try:
+                    emb_candidate = embeddings[self.w2i[candidate]]
+                except KeyError:
+                    emb_candidate = embeddings[self.w2i['<unk>']]
+
+                score = cosine_similarity(emb_word, emb_candidate, dim=0)
                 for context_word in context:
-                    score += cosine_similarity(embeddings[self.w2i[word]], embeddings[self.w2i[context_word]], dim=0)
+                    score += cosine_similarity(emb_word, embeddings[self.w2i[context_word]], dim=0)
                 score /= (len(context) + 1)
                 ranking.append((candidate, score))
             ranking.sort(key=itemgetter(1), reverse=True)
