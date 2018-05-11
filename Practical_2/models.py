@@ -40,7 +40,7 @@ class PriorMu(nn.Module):
         self.emb = nn.Embedding(vocab_size, embed_size)
 
     def forward(self, word):
-        return self.emb(word)
+        return self.emb(word).squeeze()
 
 class PriorSigma(nn.Module):
     def __init__(self, vocab_size, embed_size):
@@ -49,7 +49,7 @@ class PriorSigma(nn.Module):
         self.softplus = nn.Softplus()
 
     def forward(self, word):
-        return self.softplus(self.emb(word))
+        return self.softplus(self.emb(word)).squeeze()
 
 class ELBO(nn.Module):
     def __init__(self, embed_size):
@@ -57,17 +57,6 @@ class ELBO(nn.Module):
         self.embed_size = embed_size
 
     def forward(self, context, mu_lambda, sigma_lambda, mu_x, sigma_x, decoded):
-        losses = 0
-
-        for batch_id, context in enumerate(context):
-            sum = 0
-            for word_id in context:
-                sum += torch.log(decoded[batch_id][word_id])
-
-            kl = 0
-            for dim in range(self.embed_size):
-                kl += torch.log(sigma_x[batch_id][0][dim]/sigma_lambda[batch_id][dim])
-                kl += (sigma_lambda[batch_id][dim].pow(2) + (mu_lambda[batch_id][dim]-mu_x[batch_id][0][dim]).pow(2))/(2*sigma_x[batch_id][0][dim].pow(2)) - 0.5
-
-            losses += -sum + kl
-        return losses
+        sum = decoded.gather(1, context).log().sum()
+        kl = ((sigma_x / sigma_lambda).log() + (sigma_lambda.pow(2) + (mu_lambda-mu_x).pow(2))/(2*sigma_x.pow(2)) - 0.5).sum()
+        return kl - sum

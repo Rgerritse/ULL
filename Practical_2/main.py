@@ -12,7 +12,7 @@ import numpy as np
 # %% Parameters
 embed_size = 100
 learning_rate = 0.001
-num_epochs = 1
+num_epochs = 100
 batch_size = 64
 window = 2
 model_name = 'skipgram'
@@ -178,7 +178,7 @@ for sentence in sentences:
 # %% Trainmodel_name = 'BSK'
 importlib.reload(models)
 
-train_data = torch.utils.data.TensorDataset(torch.LongTensor(targets), torch.LongTensor(contexts))
+train_data = torch.utils.data.TensorDataset(torch.LongTensor(targets[:127]), torch.LongTensor(contexts[:127]))
 train_loader = torch.utils.data.DataLoader(dataset=train_data, batch_size=batch_size, shuffle=True)
 
 encoder = models.BayesianEncoder(vocab_size, embed_size, window)
@@ -209,7 +209,7 @@ train_errors = []
 #     net.load_state_dict(state['state_dict'])
 #     opt.load_state_dict(state['optimizer'])
 
-# %% WERKT NOG NIET
+# %% WERKT MISSCHIEN
 for epoch in range(saved_epoch, num_epochs):
     start_time = time.time()
     num_batches = len(train_loader)
@@ -222,15 +222,17 @@ for epoch in range(saved_epoch, num_epochs):
 
         #
         (mu_lambda, sigma_lambda) = encoder(b_targets, b_contexts)
-        epsilon = torch.FloatTensor((np.random.normal(0, 1, (batch_size, embed_size)))).cuda()
+        epsilon = torch.FloatTensor((np.random.normal(0, 1, (b_targets.size(1), embed_size)))).cuda()
         z = (mu_lambda) + epsilon * (sigma_lambda)
         decoded = decoder(z)
         mu_x = priorMu(b_targets)
         sigma_x = priorSigma(b_targets)
 
         loss = ELBO_loss(b_contexts, mu_lambda, sigma_lambda, mu_x, sigma_x, decoded)
+        #print(loss)
         total_loss += loss.data.item()
         loss.backward()
+        #print(encoder.embeddings.weight.grad)
         opt.step()
 
         pace = (batch+1)/(time.time() - start_time)
@@ -257,3 +259,7 @@ for epoch in range(saved_epoch, num_epochs):
     # torch.save(state, 'checkpoints/{}-{}'.format(model_name, epoch))
 
 #%%
+print(b_contexts.size())
+print(decoded.size())
+print(b_contexts.view(-1, 1))
+print(decoded.gather(1, b_contexts))
