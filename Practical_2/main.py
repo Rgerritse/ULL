@@ -7,14 +7,13 @@ from torch.autograd import Variable
 from evaluate import Evaluator
 from collections import defaultdict
 import string
-import numpy as np
 
 # %% Parameters
 embed_size = 100
 learning_rate = 0.001
 num_epochs = 100
 batch_size = 64
-window = 2
+window = 5
 model_name = 'skipgram'
 top_size = 10000 # Top n words to use for training, all other words are mapped to <unk>, use None if you do not want to map any word to <unk>
 unk = "<unk>"
@@ -178,24 +177,25 @@ for sentence in sentences:
 # %% Trainmodel_name = 'BSK'
 importlib.reload(models)
 
-train_data = torch.utils.data.TensorDataset(torch.LongTensor(targets[:127]), torch.LongTensor(contexts[:127]))
+train_data = torch.utils.data.TensorDataset(torch.LongTensor(targets).cuda(), torch.LongTensor(contexts).cuda())
 train_loader = torch.utils.data.DataLoader(dataset=train_data, batch_size=batch_size, shuffle=True)
 
-encoder = models.BayesianEncoder(vocab_size, embed_size, window)
-decoder = models.BayesianDecoder(vocab_size, embed_size)
-priorMu = models.PriorMu(vocab_size, embed_size)
-priorSigma = models.PriorSigma(vocab_size, embed_size)
-ELBO_loss = models.ELBO(embed_size)
+encoder = models.BayesianEncoder(vocab_size, embed_size, window).cuda()
+decoder = models.BayesianDecoder(vocab_size, embed_size).cuda()
+priorMu = models.PriorMu(vocab_size, embed_size).cuda()
+priorSigma = models.PriorSigma(vocab_size, embed_size).cuda()
+ELBO_loss = models.ELBO(embed_size).cuda()
 
 modules = nn.ModuleList()
-modules.append(encoder).cuda()
-modules.append(decoder).cuda()
-modules.append(priorMu).cuda()
-modules.append(priorSigma).cuda()
+modules.append(encoder)
+modules.append(decoder)
+modules.append(priorMu)
+modules.append(priorSigma)
 
 opt = torch.optim.Adam(modules.parameters(), learning_rate)
 
 # Check for saved checkpoint
+normal = torch.distributions.normal.Normal(0, 1)
 saved_epoch = 0
 lst_scores = []
 train_errors = []
@@ -215,31 +215,24 @@ for epoch in range(saved_epoch, num_epochs):
     num_batches = len(train_loader)
     total_loss = 0
     for batch, (b_targets, b_contexts) in enumerate(train_loader):
-        b_targets = Variable(b_targets).cuda()
-        b_contexts = Variable(b_contexts).cuda()
-
         opt.zero_grad()
 
-        #
         (mu_lambda, sigma_lambda) = encoder(b_targets, b_contexts)
-        epsilon = torch.FloatTensor((np.random.normal(0, 1, (b_targets.size(1), embed_size)))).cuda()
-        z = (mu_lambda) + epsilon * (sigma_lambda)
+        z = (mu_lambda) + normal.sample((b_targets.size(1), embed_size)).cuda() * (sigma_lambda)
         decoded = decoder(z)
         mu_x = priorMu(b_targets)
         sigma_x = priorSigma(b_targets)
 
         loss = ELBO_loss(b_contexts, mu_lambda, sigma_lambda, mu_x, sigma_x, decoded)
-        #print(loss)
         total_loss += loss.data.item()
         loss.backward()
-        #print(encoder.embeddings.weight.grad)
         opt.step()
 
         pace = (batch+1)/(time.time() - start_time)
         print('\r[Epoch {:03d}/{:03d}] Batch {:06d}/{:06d} [{:.1f}/s] '.format(epoch+1, num_epochs, batch+1, num_batches, pace), end='')
 
 
-    # Calculate LST score
+    # Calculate LST score10000
     total_loss /= len(train_loader)
     # score = evaluator.lst(net.embeddings.weight.data)
     score = 0
@@ -257,9 +250,3 @@ for epoch in range(saved_epoch, num_epochs):
     #     'train_err': train_errors
     # }
     # torch.save(state, 'checkpoints/{}-{}'.format(model_name, epoch))
-
-#%%
-print(b_contexts.size())
-print(decoded.size())
-print(b_contexts.view(-1, 1))
-print(decoded.gather(1, b_contexts))
