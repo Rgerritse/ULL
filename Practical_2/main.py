@@ -12,8 +12,7 @@ import numpy as np
 embed_size = 100
 learning_rate = 0.001
 num_epochs = 1
-# batch_size = 64
-batch_size = 1
+batch_size = 64
 window = 2
 model_name = 'skipgram'
 top_size = 10000 # Top n words to use for training, all other words are mapped to <unk>, use None if you do not want to map any word to <unk>
@@ -176,28 +175,70 @@ for sentence in sentences:
             contexts.append(context)
 
 # %% Bayesian SkipGram Network Definition
-class BSKNet(nn.Module):
+class BayesianEncoder(nn.Module):
     def __init__(self, vocab_size, embed_size):
-        super(BSKNet, self).__init__()
+        super(BayesianEncoder, self).__init__()
         self.embeddings = nn.Embedding(vocab_size, embed_size)
         self.relu = nn.ReLU()
-        self.fc1 = nn.Linear(2 * embed_size, 2 * embed_size)
-        self.fc2 = nn.Linear(2 * embed_size, 2 * embed_size)
-        self.fc3 = nn.Linear(2 * embed_size, vocab_size)
+        self.softplus = nn.Softplus()
+        self.fc1 = nn.Linear(2 * embed_size, embed_size)
+        self.fc2 = nn.Linear(2 * embed_size, embed_size)
+        self.m = nn.Linear(2 * embed_size, 2 * embed_size)
 
     def forward(self, target, contexts):
         target_emb = self.embeddings(target)
         target_emb = target_emb.repeat(1, 2 * window, 1)
         contexts_emb = self.embeddings(contexts)
         cat_emb = torch.cat((target_emb, contexts_emb), 2)
-        relu_emb = self.relu(cat_emb)
+        proj_emb = self.m(cat_emb)
+        relu_emb = self.relu(proj_emb)
         sum_emb = torch.sum(relu_emb, 1)
-        mu_emb = out = self.fc1(sum_emb)
-        sigma_emb = out = self.fc2(sum_emb)
-        epsilon = torch.FloatTensor((np.random.normal(0, 1, (batch_size, 2 * embed_size)))).cuda()
-        z = mu_emb + epsilon * sigma_emb
-        out = self.fc3(z)
-        return out
+        mu_emb  = self.fc1(sum_emb)
+        sigma_emb = self.softplus(self.fc2(sum_emb))
+
+        return mu_emb, sigma_emb
+
+class BayesianDecoder(nn.Module):
+    def __init__(self, vocab_size, embed_size):
+        super(BayesianDecoder, self).__init__()
+        self.affine = nn.Linear(embed_size, vocab_size)
+        self.softmax = nn.Softmax()
+
+    def forward(self, z):
+        print(z.size())
+        return self.softmax(self.affine(z))
+
+class PriorMu(nn.Module):
+    def __init__(self, vocab_size, embed_size):
+        super(PriorMu, self).__init__()
+        self.emb = nn.Embedding(vocab_size, embed_size)
+
+    def forward(self, word):
+        return self.emb(word)
+
+class PriorSigma(nn.Module):
+    def __init__(self, vocab_size, embed_size):
+        super(PriorSigma, self).__init__()
+        self.emb = nn.Embedding(vocab_size, embed_size)
+        self.softplus = nn.Softplus()
+
+    def forward(self, word):
+        return self.softplus(self.emb(word))
+
+class ELBO(nn.Module):
+    def __init__(self):
+        super(ELBO, self).__init__()
+
+    def forward(self, context, mu_lambda, sigma_lambda, mu_x, sigma_x, decoded):
+        sum = 0
+        for word_id in context:
+            sum += torch.log(decoded[word_id])
+
+        kl = 0
+        for dim in range(embed_size):
+            kl += torch.log(sigma_x[dim]/sigma_lambda[dim]) + (sigma_lambda[dim].pow(2) + (mu_lambda[dim]-mu_x[dim]).pow(2))/(2*sigma_x[dim].pow(2)) - 0.5
+
+        return -sum + kl
 
 # %% Train
 model_name = 'BSK'
@@ -205,25 +246,33 @@ model_name = 'BSK'
 train_data = torch.utils.data.TensorDataset(torch.LongTensor(targets), torch.LongTensor(contexts))
 train_loader = torch.utils.data.DataLoader(dataset=train_data, batch_size=batch_size, shuffle=True)
 
-net = BSKNet(vocab_size, embed_size).cuda()
+encoder = BayesianEncoder(vocab_size, embed_size).cuda()
+decoder = BayesianDecoder(vocab_size, embed_size).cuda()
+priorMu = PriorMu(vocab_size, embed_size).cuda()
+priorSigma = PriorSigma(vocab_size, embed_size).cuda()
+ELBO_loss = ELBO().cuda()
 
-loss_fn = nn.CrossEntropyLoss()
-# opt = torch.optim.SGD(net.parameters(), learning_rate)
-opt = torch.optim.Adam(net.parameters(), learning_rate)
+models = nn.ModuleList()
+models.append(encoder)
+models.append(decoder)
+models.append(priorMu)
+models.append(priorSigma)
+
+opt = torch.optim.Adam(models.parameters(), learning_rate)
 
 # Check for saved checkpoint
 saved_epoch = 0
 lst_scores = []
 train_errors = []
 
-checkpoints = [cp for cp in sorted(os.listdir('checkpoints')) if model_name in cp]
-if checkpoints:
-    state = torch.load('checkpoints/{}'.format(checkpoints[-1]))
-    saved_epoch = state['epoch'] + 1
-    lst_scores = state['lst_err']
-    train_errors = state['train_err']
-    net.load_state_dict(state['state_dict'])
-    opt.load_state_dict(state['optimizer'])
+# checkpoints = [cp for cp in sorted(os.listdir('checkpoints')) if model_name in cp]
+# if checkpoints:
+#     state = torch.load('checkpoints/{}'.format(checkpoints[-1]))
+#     saved_epoch = state['epoch'] + 1
+#     lst_scores = state['lst_err']
+#     train_errors = state['train_err']
+#     net.load_state_dict(state['state_dict'])
+#     opt.load_state_dict(state['optimizer'])
 
 # %% WERKT NOG NIET
 for epoch in range(saved_epoch, num_epochs):
@@ -236,16 +285,27 @@ for epoch in range(saved_epoch, num_epochs):
             b_contexts = Variable(b_contexts).cuda()
 
             opt.zero_grad()
-            outputs = net(b_targets, b_contexts)
-            print(outputs)
-            print(b_contexts)
-            loss = loss_fn(outputs, b_contexts)
+
+            #
+            (mu_lambda, sigma_lambda) = encoder(b_targets, b_contexts)
+            epsilon = torch.FloatTensor((np.random.normal(0, 1, (batch_size, embed_size)))).cuda()
+            z = (mu_lambda) + epsilon * (sigma_lambda)
+            decoded = decoder(z)
+            mu_x = priorMu(b_targets)
+            sigma_x = priorSigma(b_targets)
+
+
+            loss = ELBO_loss(b_contexts, mu_lambda, sigma_lambda, mu_x, sigma_x, decoded)
             total_loss += loss.data.item()
             loss.backward()
             opt.step()
 
         pace = (batch+1)/(time.time() - start_time)
         print('\r[Epoch {:03d}/{:03d}] Batch {:06d}/{:06d} [{:.1f}/s] '.format(epoch+1, num_epochs, batch+1, num_batches, pace), end='')
+
+# epsilon = torch.FloatTensor((np.random.normal(0, 1, (batch_size, 2 * embed_size)))).cuda()
+# z = mu_emb + epsilon * sigma_emb
+# out = self.fc3(z)
 
     # Calculate LST score
     # total_loss /= len(train_loader)
