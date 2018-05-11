@@ -1,4 +1,5 @@
 # %% Imports
+import importlib, models
 import torch, os, time
 import torch.utils.data
 import torch.nn as nn
@@ -174,91 +175,25 @@ for sentence in sentences:
                 targets.append([w2i[unk]])
             contexts.append(context)
 
-# %% Bayesian SkipGram Network Definition
-class BayesianEncoder(nn.Module):
-    def __init__(self, vocab_size, embed_size):
-        super(BayesianEncoder, self).__init__()
-        self.embeddings = nn.Embedding(vocab_size, embed_size)
-        self.relu = nn.ReLU()
-        self.softplus = nn.Softplus()
-        self.fc1 = nn.Linear(2 * embed_size, embed_size)
-        self.fc2 = nn.Linear(2 * embed_size, embed_size)
-        self.m = nn.Linear(2 * embed_size, 2 * embed_size)
-
-    def forward(self, target, contexts):
-        target_emb = self.embeddings(target)
-        target_emb = target_emb.repeat(1, 2 * window, 1)
-        contexts_emb = self.embeddings(contexts)
-        cat_emb = torch.cat((target_emb, contexts_emb), 2)
-        proj_emb = self.m(cat_emb)
-        relu_emb = self.relu(proj_emb)
-        sum_emb = torch.sum(relu_emb, 1)
-        mu_emb  = self.fc1(sum_emb)
-        sigma_emb = self.softplus(self.fc2(sum_emb))
-
-        return mu_emb, sigma_emb
-
-class BayesianDecoder(nn.Module):
-    def __init__(self, vocab_size, embed_size):
-        super(BayesianDecoder, self).__init__()
-        self.affine = nn.Linear(embed_size, vocab_size)
-        self.softmax = nn.Softmax()
-
-    def forward(self, z):
-        print(z.size())
-        return self.softmax(self.affine(z))
-
-class PriorMu(nn.Module):
-    def __init__(self, vocab_size, embed_size):
-        super(PriorMu, self).__init__()
-        self.emb = nn.Embedding(vocab_size, embed_size)
-
-    def forward(self, word):
-        return self.emb(word)
-
-class PriorSigma(nn.Module):
-    def __init__(self, vocab_size, embed_size):
-        super(PriorSigma, self).__init__()
-        self.emb = nn.Embedding(vocab_size, embed_size)
-        self.softplus = nn.Softplus()
-
-    def forward(self, word):
-        return self.softplus(self.emb(word))
-
-class ELBO(nn.Module):
-    def __init__(self):
-        super(ELBO, self).__init__()
-
-    def forward(self, context, mu_lambda, sigma_lambda, mu_x, sigma_x, decoded):
-        sum = 0
-        for word_id in context:
-            sum += torch.log(decoded[word_id])
-
-        kl = 0
-        for dim in range(embed_size):
-            kl += torch.log(sigma_x[dim]/sigma_lambda[dim]) + (sigma_lambda[dim].pow(2) + (mu_lambda[dim]-mu_x[dim]).pow(2))/(2*sigma_x[dim].pow(2)) - 0.5
-
-        return -sum + kl
-
-# %% Train
-model_name = 'BSK'
+# %% Trainmodel_name = 'BSK'
+importlib.reload(models)
 
 train_data = torch.utils.data.TensorDataset(torch.LongTensor(targets), torch.LongTensor(contexts))
 train_loader = torch.utils.data.DataLoader(dataset=train_data, batch_size=batch_size, shuffle=True)
 
-encoder = BayesianEncoder(vocab_size, embed_size).cuda()
-decoder = BayesianDecoder(vocab_size, embed_size).cuda()
-priorMu = PriorMu(vocab_size, embed_size).cuda()
-priorSigma = PriorSigma(vocab_size, embed_size).cuda()
-ELBO_loss = ELBO().cuda()
+encoder = models.BayesianEncoder(vocab_size, embed_size, window)
+decoder = models.BayesianDecoder(vocab_size, embed_size)
+priorMu = models.PriorMu(vocab_size, embed_size)
+priorSigma = models.PriorSigma(vocab_size, embed_size)
+ELBO_loss = models.ELBO(embed_size)
 
-models = nn.ModuleList()
-models.append(encoder)
-models.append(decoder)
-models.append(priorMu)
-models.append(priorSigma)
+modules = nn.ModuleList()
+modules.append(encoder).cuda()
+modules.append(decoder).cuda()
+modules.append(priorMu).cuda()
+modules.append(priorSigma).cuda()
 
-opt = torch.optim.Adam(models.parameters(), learning_rate)
+opt = torch.optim.Adam(modules.parameters(), learning_rate)
 
 # Check for saved checkpoint
 saved_epoch = 0
@@ -280,37 +215,33 @@ for epoch in range(saved_epoch, num_epochs):
     num_batches = len(train_loader)
     total_loss = 0
     for batch, (b_targets, b_contexts) in enumerate(train_loader):
-        if batch == 0:
-            b_targets = Variable(b_targets).cuda()
-            b_contexts = Variable(b_contexts).cuda()
+        b_targets = Variable(b_targets).cuda()
+        b_contexts = Variable(b_contexts).cuda()
 
-            opt.zero_grad()
+        opt.zero_grad()
 
-            #
-            (mu_lambda, sigma_lambda) = encoder(b_targets, b_contexts)
-            epsilon = torch.FloatTensor((np.random.normal(0, 1, (batch_size, embed_size)))).cuda()
-            z = (mu_lambda) + epsilon * (sigma_lambda)
-            decoded = decoder(z)
-            mu_x = priorMu(b_targets)
-            sigma_x = priorSigma(b_targets)
+        #
+        (mu_lambda, sigma_lambda) = encoder(b_targets, b_contexts)
+        epsilon = torch.FloatTensor((np.random.normal(0, 1, (batch_size, embed_size)))).cuda()
+        z = (mu_lambda) + epsilon * (sigma_lambda)
+        decoded = decoder(z)
+        mu_x = priorMu(b_targets)
+        sigma_x = priorSigma(b_targets)
 
-
-            loss = ELBO_loss(b_contexts, mu_lambda, sigma_lambda, mu_x, sigma_x, decoded)
-            total_loss += loss.data.item()
-            loss.backward()
-            opt.step()
+        loss = ELBO_loss(b_contexts, mu_lambda, sigma_lambda, mu_x, sigma_x, decoded)
+        total_loss += loss.data.item()
+        loss.backward()
+        opt.step()
 
         pace = (batch+1)/(time.time() - start_time)
         print('\r[Epoch {:03d}/{:03d}] Batch {:06d}/{:06d} [{:.1f}/s] '.format(epoch+1, num_epochs, batch+1, num_batches, pace), end='')
 
-# epsilon = torch.FloatTensor((np.random.normal(0, 1, (batch_size, 2 * embed_size)))).cuda()
-# z = mu_emb + epsilon * sigma_emb
-# out = self.fc3(z)
 
     # Calculate LST score
-    # total_loss /= len(train_loader)
+    total_loss /= len(train_loader)
     # score = evaluator.lst(net.embeddings.weight.data)
-    # print('Time: {:.1f}s Loss: {:.3f} LST: {:.6f}'.format(time.time() - start_time, total_loss, score))
+    score = 0
+    print('Time: {:.1f}s Loss: {:.3f} LST: {:.6f}'.format(time.time() - start_time, total_loss, score))
     #
     # lst_scores.append(score)
     # train_errors.append(total_loss)
