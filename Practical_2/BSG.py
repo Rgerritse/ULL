@@ -2,7 +2,7 @@
 import models, torch, os, time
 import torch.nn as nn
 from torch.utils.data import TensorDataset, DataLoader
-from evaluate import Evaluator
+from evaluate import BayesianEvaluator
 from utils import create_vocab, create_BSG_dataset, get_lst_vocab
 
 # %% Parameters
@@ -36,6 +36,9 @@ modules.append(decoder)
 modules.append(priorMu)
 modules.append(priorSigma)
 modules = modules.cuda()
+
+# %% Load Evaluator
+evaluator = BayesianEvaluator(w2i, window_size)
 
 # %% Train
 opt = torch.optim.Adam(modules.parameters(), learning_rate)
@@ -77,8 +80,7 @@ for epoch in range(saved_epoch, num_epochs):
 
     # Calculate LST score
     total_loss /= len(train_loader)
-    # score = evaluator.lst(net.embeddings.weight.data)
-    score = 0
+    score = evaluator.lst(encoder, priorMu, priorSigma)
     print('Time: {:.1f}s Loss: {:.3f} LST: {:.6f}'.format(time.time() - start_time, total_loss, score))
 
     lst_scores.append(score)
@@ -93,6 +95,8 @@ for epoch in range(saved_epoch, num_epochs):
         'train_err': train_errors
     }
     torch.save(state, 'checkpoints/{}-{}'.format(model_name, epoch+1))
-
 # %%
-print(priorSigma.emb.sparse)
+import importlib, evaluate
+importlib.reload(evaluate)
+from evaluate import BayesianEvaluator
+evaluator = BayesianEvaluator(w2i, window_size)
