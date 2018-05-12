@@ -1,6 +1,17 @@
 import torch.nn as nn
 import torch
 
+class SkipGram(nn.Module):
+    def __init__(self, vocab_size, embed_size):
+        super(SkipGram, self).__init__()
+        self.embeddings = nn.Embedding(vocab_size, embed_size)
+        self.fc1 = nn.Linear(embed_size, vocab_size)
+
+    def forward(self, data):
+        out = self.embeddings(data)
+        out = self.fc1(out)
+        return out
+
 class BayesianEncoder(nn.Module):
     def __init__(self, vocab_size, embed_size, window):
         super(BayesianEncoder, self).__init__()

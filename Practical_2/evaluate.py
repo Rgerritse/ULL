@@ -44,10 +44,7 @@ class Evaluator:
             ranking = []
             for candidate in candidates:
                 emb_word = embeddings[self.w2i[word]]
-                try:
-                    emb_candidate = embeddings[self.w2i[candidate]]
-                except KeyError:
-                    emb_candidate = embeddings[self.w2i['<unk>']]
+                emb_candidate = embeddings[self.w2i[candidate]]
 
                 score = cosine_similarity(emb_word, emb_candidate, dim=0)
                 for context_word in context:
