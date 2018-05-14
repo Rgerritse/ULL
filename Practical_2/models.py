@@ -62,6 +62,31 @@ class PriorSigma(nn.Module):
     def forward(self, word):
         return self.softplus(self.emb(word)).squeeze()
 
+class EmbedAlignEncoder(nn.Module):
+    def __init__(self, vocab_size, embed_size):
+        super(EmbedAlignEncoder, self).__init__()
+        self.embeddings = nn.Embedding(vocab_size, embed_size)
+        self.lstm = torch.nn.LSTM(embed_size, embed_size, bidirectional = True)
+        self.mu_fc1 = nn.Linear(embed_size, embed_size)
+        self.mu_fc2 = nn.Linear(embed_size, embed_size)
+        self.sigma_fc1 = nn.Linear(embed_size, embed_size)
+        self.sigma_fc2 = nn.Linear(embed_size, embed_size)
+        self.relu = nn.ReLU()
+        self.softplus = nn.Softplus()
+
+    def forward(self, sentence):
+        emb = self.embeddings(sentence)
+        lstm_out, (hn, cn) = self.lstm(emb)
+        print(lstm_out.size())
+        mus = self.mu_fc1(lstm_out)
+        mus = self.relu(mus)
+        mus = self.mu_fc1(mus)
+        sigmas = self.sigma_fc1(lstm_out)
+        sigmas = self.relu(sigmas)
+        sigmas = self.mu_fc1(sigmas)
+        return mus, sigmas
+        # return mu_emb, sigma_emb
+
 class ELBO(nn.Module):
     def __init__(self, embed_size):
         super(ELBO, self).__init__()

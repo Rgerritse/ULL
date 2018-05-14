@@ -2,8 +2,8 @@ import string, time, torch
 
 from collections import Counter
 
-def create_vocab(top_size, vocab_file, required_words):
-    with open('stopwords') as f: # List of stopwords obtained from nltk
+def create_vocab(top_size, vocab_file, required_words, stop_file):
+    with open(stop_file) as f: # List of stopwords obtained from nltk
         stop_words = f.read().split()
 
     with open(vocab_file, 'r') as f:
@@ -80,6 +80,22 @@ def create_SG_dataset(data_file, window_size, w2i):
                             contexts.append(w2i['<unk>'])
 
     return torch.LongTensor(targets).cuda(), torch.LongTensor(contexts).cuda()
+
+def create_EA_dataset(data_file, vocab, w2i):
+    with open(data_file) as f:
+        sentences = [line.lower().split() for line in f.readlines()]
+
+    data = []
+    for sentence in sentences:
+        indices = []
+        for word in sentence:
+            if word in vocab:
+                indices.append(w2i[word])
+            else:
+                indices.append(w2i['<unk>'])
+        data.append(torch.LongTensor(indices))
+
+    return data
 
 def get_lst_vocab():
     vocab = set()

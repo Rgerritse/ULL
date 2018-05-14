@@ -3,10 +3,12 @@ import importlib, models
 import torch, os, time
 import torch.utils.data
 import torch.nn as nn
+from torch.nn.utils.rnn import pack_sequence, pack_padded_sequence, pad_packed_sequence, pad_sequence
 from torch.autograd import Variable
 from evaluate import Evaluator
 from collections import defaultdict
 import string
+from utils import create_vocab, create_EA_dataset
 
 # %% Parameters
 embed_size = 100
@@ -250,3 +252,157 @@ for epoch in range(saved_epoch, num_epochs):
     #     'train_err': train_errors
     # }
     # torch.save(state, 'checkpoints/{}-{}'.format(model_name, epoch))
+
+#%% Create Vocabularies and Data EmbedAlign
+required_words = []
+vocab_en, vocab_size_en, w2i_en, i2w_en = create_vocab(top_size, "data/hansards/training.en", required_words, 'stopwords_english')
+vocab_fr, vocab_size_fr, w2i_fr, i2w_fr = create_vocab(top_size, "data/hansards/training.fr", required_words, 'stopwords_french')
+
+data_en = create_EA_dataset("data/hansards/training.en", vocab_en, w2i_en)
+data_fr = create_EA_dataset("data/hansards/training.fr", vocab_fr, w2i_fr)
+
+#%%
+
+sorted_data_en = sorted(data_en, key=len, reverse=True)
+longest = len(sorted_data_en[0])
+batches = [data_en[i:i + batch_size] for i in range(0, len(data_en), batch_size)]
+# pack_data_en = pack_sequence(sorted_data_en, batch_first=True)
+
+# %% Initiaze models Embed Align
+importlib.reload(models)
+
+# train_data = torch.utils.data.TensorDataset(torch.LongTensor(targets).cuda(), torch.LongTensor(contexts).cuda())
+# train_loader = torch.utils.data.DataLoader(dataset=train_data, batch_size=batch_size, shuffle=True)
+
+encoder = models.EmbedAlignEncoder(vocab_size_en, embed_size)
+# decoder = models.BayesianDecoder(vocab_size, embed_size).cuda()
+# priorMu = models.PriorMu(vocab_size, embed_size).cuda()
+# priorSigma = models.PriorSigma(vocab_size, embed_size).cuda()
+# ELBO_loss = models.ELBO(embed_size).cuda()
+
+modules = nn.ModuleList()
+modules.append(encoder)
+# modules.append(decoder)
+# modules.append(priorMu)
+# modules.append(priorSigma)
+
+opt = torch.optim.Adam(modules.parameters(), learning_rate)
+
+# Check for saved checkpoint
+normal = torch.distributions.normal.Normal(0, 1)
+saved_epoch = 0
+lst_scores = []
+train_errors = []
+
+#%%
+print(data_en[i])
+
+#%% Train models Embed Align
+# for epoch in range(saved_epoch, num_epochs):
+for epoch in range(saved_epoch, 1):
+    start_time = time.time()
+    # num_batches = len(train_loader)
+    total_loss = 0
+    for i in range(len(data_en)):
+        if i == 0:
+            encoder(sentence_en)
+            # print(sentence_en)
+        # if i == 0:
+            # sorted_batch = sorted(batch, key=len, reverse=True)
+            # pack_batch = pack_sequence(sorted_batch)
+            # encoder(batch)
+            # print(len(batch))
+
+            # seq_tensor = torch.zeros((len(vectorized_seqs), seq_lengths.max())).long()
+    # for idx, (seq, seqlen) in enumerate(zip(vectorized_seqs, seq_lengths)):
+        # seq_tensor[idx, :seqlen] = torch.LongTensor(seq)
+    # return seq_tensor
+            # pace = (i+1)/(time.time() - start_time)
+            # print('\r[Epoch {:03d}/{:03d}] Batch {:06d}/{:06d} [{:.1f}/s] '.format(epoch+1, num_epochs, i+1, len(data_en), pace), end='')
+    # for i in range(len(data_en)):
+        # if i ==0:
+            # sentence_en = torch.LongTensor(data_en[i])
+            # sentence_fr = torch.LongTensor(data_fr[i])
+            # opt.zero_grad()
+
+            # encoder(sentence_en)
+
+            # (mu_lambda, sigma_lambda) = encoder(b_targets, b_contexts)
+            # z = (mu_lambda) + normal.sample((b_targets.size(1), embed_size)).cuda() * (sigma_lambda)
+            # decoded = decoder(z)
+            # mu_x = priorMu(b_targets)
+            # sigma_x = priorSigma(b_targets)
+
+            # loss = ELBO_loss(b_contexts, mu_lambda, sigma_lambda, mu_x, sigma_x, decoded)
+            # total_loss += loss.data.item()
+            # loss.backward()
+            # opt.step()
+
+
+
+
+    # Calculate LST score10000
+    # total_loss /= len(train_loader)
+    # score = evaluator.lst(net.embeddings.weight.data)
+    # score = 0
+    # print('Time: {:.1f}s Loss: {:.3f} LST: {:.6f}'.format(time.time() - start_time, total_loss, score))
+
+#%%
+import itertools
+
+
+seqs = ['ghatmasala','nicela','c-pakodas']
+
+# make <pad> idx 0
+vocab = ['<pad>'] + sorted(list(set(flatten(seqs))))
+
+# make model
+embed = nn.Embedding(len(vocab), 10).cuda()
+lstm = nn.LSTM(10, 5, batch_first=True).cuda()
+
+vectorized_seqs = [[vocab.index(tok) for tok in seq]for seq in seqs]
+vectorized_seqs = sorted(vectorized_seqs, key=len, reverse=True)
+vectorized_seqs = [torch.cuda.LongTensor(i) for i in vectorized_seqs]
+# seq_lengths = torch.cuda.LongTensor(list(map(len, vectorized_seqs)))
+
+
+# padded_sequence = pad_sequence(vectorized_seqs, batch_first=True)
+/
+# seq_tensor = embed(padded_sequence)
+# packed_input = pack_padded_sequence(seq_tensor, seq_lengths.cpu().numpy(), batch_first=True)
+# pad_packed_sequence(packed_input, batch_first=True)
+# get the length of each seq in your batch
+# seq_lengths = torch.cuda.LongTensor(list(map(len, vectorized_seqs)))
+#
+# # dump padding everywhere, and place seqs on the left.
+# # NOTE: you only need a tensor as big as your longest sequence
+# seq_tensor = Variable(torch.zeros((len(vectorized_seqs), seq_lengths.max()))).long().cuda()
+# for idx, (seq, seqlen) in enumerate(zip(vectorized_seqs, seq_lengths)):
+# 	seq_tensor[idx, :seqlen] = torch.LongTensor(seq)
+#
+# # SORT YOUR TENSORS BY LENGTH!
+# seq_lengths, perm_idx = seq_lengths.sort(0, descending=True)
+# seq_tensor = seq_tensor[perm_idx]
+#
+# # utils.rnn lets you give (B,L,D) tensors where B is the batch size, L is the maxlength, if you use batch_first=True
+# # Otherwise, give (L,B,D) tensors
+# seq_tensor = seq_tensor # (B,L,D) -> (L,B,D)
+#
+# print(seq_tensor.size())
+# # embed your sequences
+# seq_tensor = embed(seq_tensor)
+# print(seq_tensor.size())
+# # pack them up nicely
+# print(seq_tensor)
+# packed_input = pack_padded_sequence(seq_tensor, seq_lengths.cpu().numpy())
+#
+# # throw them through your LSTM (remember to give batch_first=True here if you packed with it)
+# packed_output, (ht, ct) = lstm(packed_input)
+#
+# # unpack your output if required
+# output, _ = pad_packed_sequence(packed_output)
+# print(output)
+
+# Or if you just want the final hidden state
+#%%
+print(torch.LongTensor([[1,2]]))
