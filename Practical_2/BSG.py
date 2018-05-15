@@ -2,7 +2,7 @@
 import models, torch, os, time
 import torch.nn as nn
 from torch.utils.data import TensorDataset, DataLoader
-from evaluate import BayesianEvaluator
+from evaluate import BSGEvaluator
 from utils import create_vocab, create_BSG_dataset, get_lst_vocab
 
 # %% Parameters
@@ -19,6 +19,7 @@ top_size = 10000 # Top n words to use for training, all other words are mapped t
 lst_words = get_lst_vocab()
 vocab, vocab_size, w2i, i2w = create_vocab(top_size, dataset, lst_words, 'stopwords_english')
 targets, contexts = create_BSG_dataset(dataset, window_size, w2i)
+evaluator = BSGEvaluator(w2i, i2w, window_size)
 
 # %% Initialise models
 train_data = TensorDataset(targets, contexts)
@@ -36,9 +37,6 @@ modules.append(decoder)
 modules.append(priorMu)
 modules.append(priorSigma)
 modules = modules.cuda()
-
-# %% Load Evaluator
-evaluator = BayesianEvaluator(w2i, window_size)
 
 # %% Train
 opt = torch.optim.Adam(modules.parameters(), learning_rate)
@@ -95,8 +93,10 @@ for epoch in range(saved_epoch, num_epochs):
         'train_err': train_errors
     }
     torch.save(state, 'checkpoints/{}-{}'.format(model_name, epoch+1))
+
 # %%
 import importlib, evaluate
 importlib.reload(evaluate)
-from evaluate import BayesianEvaluator
-evaluator = BayesianEvaluator(w2i, window_size)
+from evaluate import BSGEvaluator
+evaluator = BSGEvaluator(w2i, i2w, window_size)
+score = evaluator.lst(encoder, priorMu, priorSigma)

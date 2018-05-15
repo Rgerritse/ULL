@@ -2,7 +2,7 @@
 import models, torch, os, time
 import torch.nn as nn
 from torch.utils.data import TensorDataset, DataLoader
-from evaluate import Evaluator
+from evaluate import SGEvaluator
 from utils import create_vocab, create_SG_dataset, get_lst_vocab
 
 # %% Parameters
@@ -17,11 +17,11 @@ top_size = 10000 # Top n words to use for training, all other words are mapped t
 
 # %% Construct vocabulary and load dataset
 lst_words = get_lst_vocab()
-vocab, vocab_size, w2i, i2w = create_vocab(top_size, dataset, lst_words)
+vocab, vocab_size, w2i, i2w = create_vocab(top_size, dataset, lst_words, 'stopwords_english')
 targets, contexts = create_SG_dataset(dataset, window_size, w2i)
 
 # %% Load Evaluator
-evaluator = Evaluator(w2i, i2w, window_size)
+evaluator = SGEvaluator(w2i, i2w, window_size)
 
 # %% Train
 train_data = torch.utils.data.TensorDataset(targets, contexts)
@@ -48,11 +48,11 @@ for epoch in range(saved_epoch, num_epochs):
     start_time = time.time()
     num_batches = len(train_loader)
     total_loss = 0
-    for batch, (inputs, targets) in enumerate(train_loader):
+    for batch, (target, context) in enumerate(train_loader):
         opt.zero_grad()
-        outputs = net(inputs)
+        output = net(target)
 
-        loss = loss_fn(outputs, targets)
+        loss = loss_fn(output, context)
         total_loss += loss.data.item()
         loss.backward()
 
