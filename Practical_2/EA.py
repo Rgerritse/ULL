@@ -1,6 +1,6 @@
 # %% Imports
 import importlib, models
-import torch, os, time
+import torch, os, time,sys
 import torch.utils.data
 import torch.nn as nn
 from torch.nn.utils.rnn import pack_sequence, pack_padded_sequence, pad_packed_sequence, pad_sequence
@@ -12,7 +12,7 @@ from utils import create_vocab, create_EA_dataset
 
 # %% Parameters
 embed_size = 100
-learning_rate = 0.001
+learning_rate = 0.01
 num_epochs = 100
 batch_size = 64
 window = 5
@@ -115,5 +115,11 @@ mus, sigmas = encoder(s)
 lstm = nn.LSTM(5, 10, batch_first=True, bidirectional=True).cuda()
 data = [[[-1.5, 3.5, 0.56, 0.43, 0.67], [-1.5, 3.5, 0.56, 0.43, 0.67]]]
 data = torch.Tensor(data).cuda()
+data[:][:]
 type(data)
 print(lstm(data))
+
+#%%
+a = torch.LongTensor([1,2,3,4])
+print(a.size())
+a.repeat(4,1)
