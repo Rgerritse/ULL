@@ -77,12 +77,8 @@ class EmbedAlignEncoder(nn.Module):
 
     def forward(self, sentence):
         emb = self.embeddings(sentence)
-        print(emb)
-        print(emb.size())
         lstm_out, (hn, cn) = self.lstm(emb)
-        print(lstm_out)
         lstm_1, lstm_2 = torch.split(lstm_out, self.embed_size, dim=2)
-        print(lstm_1, lstm_2)
         lstm_out = lstm_1 + lstm_2
         mus = self.mu_fc1(lstm_out)
         mus = self.relu(mus)
@@ -116,8 +112,6 @@ class EmbedAlignELBO(nn.Module):
     def forward(self, sentence_en, sentence_fr, mus, sigmas, decoded_en, decoded_fr):
         sentence_en = sentence_en.unsqueeze(2)
         sum = decoded_en.gather(2, sentence_en).log().sum()
-        print(decoded_en)
-        print(sentence_en, sum)
 
         for batch in range(decoded_fr.size(0)):
             for fr_pos, word_fr in enumerate(sentence_fr):
@@ -127,9 +121,6 @@ class EmbedAlignELBO(nn.Module):
                 sum += sum_en.log()
 
         kl = ((1 / sigmas).log() + (sigmas.pow(2) + mus.pow(2))/2 - 0.5).sum()
-
-        print(kl, sum)
-        sys.exit(0)
 
         return kl - sum
 

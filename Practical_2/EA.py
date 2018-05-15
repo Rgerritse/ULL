@@ -43,9 +43,11 @@ modules = nn.ModuleList()
 modules.append(encoder)
 modules.append(decoder_en)
 modules.append(decoder_fr)
+modules = modules.cuda()
 
 # Check for saved checkpoint
 opt = torch.optim.Adam(modules.parameters(), learning_rate)
+normal = torch.distributions.normal.Normal(0, 1)
 saved_epoch = 0
 lst_scores = []
 train_errors = []
@@ -67,22 +69,20 @@ for epoch in range(saved_epoch, num_epochs):
     start_time = time.time()
     # num_batches = len(train_loader)
     total_loss = 0
-    losses = []
     for batch in range(len(data_en[:2000])):
         opt.zero_grad()
 
-        sentence_en = torch.stack([data_en[batch]])
-        sentence_fr = torch.stack([data_fr[batch]])
+        sentence_en = torch.stack([data_en[batch]]).cuda()
+        sentence_fr = torch.stack([data_fr[batch]]).cuda()
 
         mus, sigmas = encoder(sentence_en)
-        z = mus + normal.sample((mus.size(0), mus.size(1), embed_size)) * sigmas
+        z = mus + normal.sample((mus.size(0), mus.size(1), embed_size)).cuda() * sigmas
         decoded_en = decoder_en(z)
         decoded_fr = decoder_fr(z)
 
         # Calculate Loss and train
         loss = ELBO_loss(sentence_en, sentence_fr, mus, sigmas, decoded_en, decoded_fr)
         total_loss += loss.data.item()
-        losses.append(loss.data.item())
         loss.backward()
         opt.step()
 
@@ -92,7 +92,6 @@ for epoch in range(saved_epoch, num_epochs):
     total_loss /= 2000
     score = 0
     print('Time: {:.1f}s Loss: {:.3f} LST: {:.6f}'.format(time.time() - start_time, total_loss, score))
-    print(losses)
 
     lst_scores.append(score)
     train_errors.append(total_loss)
@@ -106,3 +105,15 @@ for epoch in range(saved_epoch, num_epochs):
         'train_err': train_errors
     }
     torch.save(state, 'checkpoints/{}-{}'.format(model_name, epoch+1))
+
+# %%
+encoder.lstm
+s = torch.stack([data_en[2]])
+mus, sigmas = encoder(s)
+
+# %%
+lstm = nn.LSTM(5, 10, batch_first=True, bidirectional=True).cuda()
+data = [[[-1.5, 3.5, 0.56, 0.43, 0.67], [-1.5, 3.5, 0.56, 0.43, 0.67]]]
+data = torch.Tensor(data).cuda()
+type(data)
+print(lstm(data))

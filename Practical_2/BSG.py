@@ -17,7 +17,7 @@ top_size = 10000 # Top n words to use for training, all other words are mapped t
 
 # %% Construct vocabulary and load dataset
 lst_words = get_lst_vocab()
-vocab, vocab_size, w2i, i2w = create_vocab(top_size, dataset, lst_words)
+vocab, vocab_size, w2i, i2w = create_vocab(top_size, dataset, lst_words, 'stopwords_english')
 targets, contexts = create_BSG_dataset(dataset, window_size, w2i)
 
 # %% Initialise models
