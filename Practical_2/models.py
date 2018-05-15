@@ -1,5 +1,5 @@
 import torch.nn as nn
-import torch
+import torch, sys
 
 class SkipGram(nn.Module):
     def __init__(self, vocab_size, embed_size):
@@ -66,26 +66,72 @@ class EmbedAlignEncoder(nn.Module):
     def __init__(self, vocab_size, embed_size):
         super(EmbedAlignEncoder, self).__init__()
         self.embeddings = nn.Embedding(vocab_size, embed_size)
-        self.lstm = torch.nn.LSTM(embed_size, embed_size, bidirectional = True)
+        self.lstm = torch.nn.LSTM(embed_size, embed_size, bidirectional = True, batch_first=True)
         self.mu_fc1 = nn.Linear(embed_size, embed_size)
         self.mu_fc2 = nn.Linear(embed_size, embed_size)
         self.sigma_fc1 = nn.Linear(embed_size, embed_size)
         self.sigma_fc2 = nn.Linear(embed_size, embed_size)
         self.relu = nn.ReLU()
         self.softplus = nn.Softplus()
+        self.embed_size = embed_size
 
     def forward(self, sentence):
         emb = self.embeddings(sentence)
+        print(emb)
+        print(emb.size())
         lstm_out, (hn, cn) = self.lstm(emb)
-        print(lstm_out.size())
+        print(lstm_out)
+        lstm_1, lstm_2 = torch.split(lstm_out, self.embed_size, dim=2)
+        print(lstm_1, lstm_2)
+        lstm_out = lstm_1 + lstm_2
         mus = self.mu_fc1(lstm_out)
         mus = self.relu(mus)
         mus = self.mu_fc1(mus)
         sigmas = self.sigma_fc1(lstm_out)
         sigmas = self.relu(sigmas)
-        sigmas = self.mu_fc1(sigmas)
+        sigmas = self.sigma_fc2(sigmas)
+        sigmas = self.softplus(sigmas)
+
         return mus, sigmas
-        # return mu_emb, sigma_emb
+
+class EmbedAlignDecoder(nn.Module):
+    def __init__(self, vocab_size, embed_size):
+        super(EmbedAlignDecoder, self).__init__()
+        self.fc1 = nn.Linear(embed_size, embed_size)
+        self.fc2 = nn.Linear(embed_size, vocab_size)
+        self.relu = nn.ReLU()
+        self.softmax = nn.Softmax(dim=1)
+
+    def forward(self, z):
+        out = self.fc1(z)
+        out = self.relu(out)
+        out = self.fc2(out)
+        return self.softmax(out)
+
+class EmbedAlignELBO(nn.Module):
+    def __init__(self, embed_size):
+        super(EmbedAlignELBO, self).__init__()
+        self.embed_size = embed_size
+
+    def forward(self, sentence_en, sentence_fr, mus, sigmas, decoded_en, decoded_fr):
+        sentence_en = sentence_en.unsqueeze(2)
+        sum = decoded_en.gather(2, sentence_en).log().sum()
+        print(decoded_en)
+        print(sentence_en, sum)
+
+        for batch in range(decoded_fr.size(0)):
+            for fr_pos, word_fr in enumerate(sentence_fr):
+                sum_en = 0
+                for en_pos in range(len(sentence_en)):
+                    sum_en += (1/len(sentence_en)) * decoded_fr[batch][en_pos][fr_pos]
+                sum += sum_en.log()
+
+        kl = ((1 / sigmas).log() + (sigmas.pow(2) + mus.pow(2))/2 - 0.5).sum()
+
+        print(kl, sum)
+        sys.exit(0)
+
+        return kl - sum
 
 class ELBO(nn.Module):
     def __init__(self, embed_size):
