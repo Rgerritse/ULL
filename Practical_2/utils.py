@@ -19,12 +19,13 @@ def create_vocab(top_size, vocab_file, required_words, stop_file):
 
     # Merge vocabulary with required words
     vocab = vocab.union(required_words)
+    vocab = ['<pad>'] + list(vocab)
     vocab_size = len(vocab)
 
     w2i = {k: v for v, k in enumerate(vocab)}
     i2w = {v: k for v, k in enumerate(vocab)}
 
-    return vocab, vocab_size, w2i, i2w
+    return set(vocab), vocab_size, w2i, i2w
 
 def create_BSG_dataset(data_file, window_size, w2i):
     with open('stopwords') as f: # List of stopwords obtained from nltk
@@ -93,7 +94,7 @@ def create_EA_dataset(data_file, vocab, w2i):
                 indices.append(w2i[word])
             else:
                 indices.append(w2i['<unk>'])
-        data.append(torch.LongTensor(indices))
+        data.append(torch.cuda.LongTensor(indices))
 
     return data
 

@@ -1,5 +1,6 @@
 import torch.nn as nn
 import torch, sys
+from torch.nn.utils.rnn import pack_padded_sequence, pad_packed_sequence
 
 class SkipGram(nn.Module):
     def __init__(self, vocab_size, embed_size):
@@ -75,9 +76,11 @@ class EmbedAlignEncoder(nn.Module):
         self.softplus = nn.Softplus()
         self.embed_size = embed_size
 
-    def forward(self, sentence):
+    def forward(self, sentence, lengths):
         emb = self.embeddings(sentence)
-        lstm_out, (hn, cn) = self.lstm(emb)
+        packed_emb = pack_padded_sequence(emb, lengths, batch_first=True)
+        packed_lstm_out, (hn, cn) = self.lstm(packed_emb)
+        lstm_out, _ = pad_packed_sequence(packed_lstm_out, batch_first=True)
         lstm_1, lstm_2 = torch.split(lstm_out, self.embed_size, dim=2)
         lstm_out = lstm_1 + lstm_2
         mus = self.mu_fc1(lstm_out)
@@ -109,7 +112,7 @@ class EmbedAlignELBO(nn.Module):
         super(EmbedAlignELBO, self).__init__()
         self.embed_size = embed_size
 
-    def forward(self, sentence_en, sentence_fr, mus, sigmas, decoded_en, decoded_fr):
+    def forward(self, sentence_en, sentence_fr, m, mus, sigmas, decoded_en, decoded_fr):
         sentence_en = sentence_en.unsqueeze(2)
         sum = decoded_en.gather(2, sentence_en).log().sum()
 
@@ -117,17 +120,6 @@ class EmbedAlignELBO(nn.Module):
             m = sentence_en.size(1)
             data = torch.index_select(decoded_fr[batch], 1, sentence_fr[batch])/m
             sum  += data.sum(0).log().sum()
-
-            # for word_fr in sentence_fr[batch]:
-            #     sum += (decoded_fr[batch, :, word_fr]/len(sentence_en)).sum().log()
-
-        # for batch in range(decoded_fr.size(0)):
-        #     for fr_pos, word_fr in enumerate(sentence_fr):
-        #         sum_en = 0
-        #         for en_pos in range(len(sentence_en)):
-        #             sum_en += (1/len(sentence_en)) * decoded_fr[batch][en_pos][fr_pos]
-        #
-        #         sum += sum_en.log()
 
         kl = ((1 / sigmas).log() + (sigmas.pow(2) + mus.pow(2))/2 - 0.5).sum()
 
