@@ -1,18 +1,14 @@
 # %% Imports
-import importlib, models
-import torch, os, time,sys, random
+import torch, os, time,sys, random, string, importlib, models, evaluate
 import torch.utils.data
 import torch.nn as nn
 from torch.nn.utils.rnn import pack_sequence, pack_padded_sequence, pad_packed_sequence, pad_sequence
 from torch.autograd import Variable
-from evaluate import Evaluator
-from collections import defaultdict
-import string
 from utils import create_vocab, create_EA_dataset, get_lst_vocab
 
 # %% Parameters
 embed_size = 100
-learning_rate = 0.01
+learning_rate = 0.00001
 num_epochs = 100
 batch_size = 8
 window = 5
@@ -30,10 +26,11 @@ data_fr = create_EA_dataset("data/hansards/training.fr", vocab_fr, w2i_fr)
 data_length = list(map(len, data_en))
 
 # Create batches
-batches = [(data_en[i:i + batch_size], data_fr[i:i + batch_size], data_length[i:i + batch_size]) for i in range(0, len(data_en), batch_size)]
+batches = [(data_en[i:i + batch_size], data_fr[i:i + batch_size], data_length[i:i + batch_size]) for i in range(0, len(data_en), batch_size)][:2500]
 
 # %% Initiaze models Embed Align
 importlib.reload(models)
+importlib.reload(evaluate)
 
 encoder = models.EmbedAlignEncoder(vocab_size_en, embed_size)
 decoder_en = models.EmbedAlignDecoder(vocab_size_en, embed_size)
@@ -45,6 +42,10 @@ modules.append(encoder)
 modules.append(decoder_en)
 modules.append(decoder_fr)
 modules = modules.cuda()
+
+evaluator = evaluate.EAEvaluator(w2i_en, i2w_en)
+
+#%% Train models Embed Align
 
 # Check for saved checkpoint
 opt = torch.optim.Adam(modules.parameters(), learning_rate)
@@ -63,8 +64,6 @@ if checkpoints:
     modules.load_state_dict(state['state_dict'])
     opt.load_state_dict(state['optimizer'])
 
-
-#%% Train models Embed Align
 for epoch in range(saved_epoch, num_epochs):
     start_time = time.time()
     total_loss = 0
@@ -92,11 +91,11 @@ for epoch in range(saved_epoch, num_epochs):
         opt.step()
 
         pace = (batch+1)/(time.time() - start_time)
-        print('\r[Epoch {:03d}/{:03d}] Batch {:06d}/{:06d} [{:.1f}/s] '.format(epoch+1, num_epochs, batch+1, len(data_en)//batch_size, pace), end='')
+        print('\r[Epoch {:03d}/{:03d}] Batch {:06d}/{:06d} [{:.1f}/s] '.format(epoch+1, num_epochs, batch+1, len(batches), pace), end='')
 
     # Calculate LST score
     total_loss /= 2000
-    score = 0
+    score = evaluator.lst(encoder)
     print('Time: {:.1f}s Loss: {:.3f} LST: {:.6f}'.format(time.time() - start_time, total_loss, score))
 
     lst_scores.append(score)

@@ -117,8 +117,7 @@ class EmbedAlignELBO(nn.Module):
         sum = decoded_en.gather(2, sentence_en).log().sum()
 
         for batch in range(decoded_fr.size(0)):
-            m = sentence_en.size(1)
-            data = torch.index_select(decoded_fr[batch], 1, sentence_fr[batch])/m
+            data = torch.index_select(decoded_fr[batch], 1, sentence_fr[batch]) / m[batch].float()
             sum  += data.sum(0).log().sum()
 
         kl = ((1 / sigmas).log() + (sigmas.pow(2) + mus.pow(2))/2 - 0.5).sum()

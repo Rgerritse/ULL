@@ -6,21 +6,19 @@ from evaluate import SGEvaluator
 from utils import create_vocab, create_SG_dataset, get_lst_vocab
 
 # %% Parameters
-model_name = 'SG'
+model_name = 'SGall'
 dataset = 'data/hansards/training.en'
 embed_size = 100
 learning_rate = 0.001
 num_epochs = 100
 batch_size = 64
 window_size = 5
-top_size = 10000 # Top n words to use for training, all other words are mapped to <unk>, use None if you do not want to map any word to <unk>
+top_size = None # Top n words to use for training, all other words are mapped to <unk>, use None if you do not want to map any word to <unk>
 
 # %% Construct vocabulary and load dataset
 lst_words = get_lst_vocab()
 vocab, vocab_size, w2i, i2w = create_vocab(top_size, dataset, lst_words, 'stopwords_english')
 targets, contexts = create_SG_dataset(dataset, window_size, w2i)
-
-# %% Load Evaluator
 evaluator = SGEvaluator(w2i, i2w, window_size)
 
 # %% Train
@@ -55,7 +53,6 @@ for epoch in range(saved_epoch, num_epochs):
         loss = loss_fn(output, context)
         total_loss += loss.data.item()
         loss.backward()
-
         opt.step()
 
         pace = (batch+1)/(time.time() - start_time)

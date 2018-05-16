@@ -33,7 +33,7 @@ class Evaluator:
                 word = words[pos]
                 context = words[max(0, pos - self.window_size):min(len(words), pos + self.window_size)]
 
-                self.sentences.append((word_id, sentence_id, word, context, candidates[word_id]))
+                self.sentences.append((word_id, sentence_id, word, context, candidates[word_id], words, pos))
 
     def write_rankings(self, rankings):
         out = ''
@@ -52,7 +52,7 @@ class SGEvaluator(Evaluator):
 
     def lst(self, embeddings):
         rankings = []
-        for word_id, sentence_id, word, context, candidates in self.sentences:
+        for word_id, sentence_id, word, context, candidates, _, _ in self.sentences:
             # Compute scores
             ranking = []
             for candidate in candidates:
@@ -79,10 +79,9 @@ class BSGEvaluator(Evaluator):
     def __init__(self, w2i, i2w, window_size):
         super().__init__(w2i, i2w, window_size)
 
-
     def lst(self, encoder, priorMu, priorSigma):
         rankings = []
-        for word_id, sentence_id, word, context, candidates in self.sentences:
+        for word_id, sentence_id, word, context, candidates, _, _ in self.sentences:
             # Pad context with unknowns
             context += [self.w2i['<unk>']]*(2*self.window_size-len(context))
 
@@ -95,6 +94,32 @@ class BSGEvaluator(Evaluator):
 
                 kl = ((sigma_prior / sigma_posterior).log() + (sigma_posterior.pow(2) + (mu_posterior-mu_prior).pow(2))/(2*sigma_prior.pow(2)) - 0.5).sum()
                 ranking.append((candidate, kl))
+            ranking.sort(key=itemgetter(1))
+            rankings.append((word_id, sentence_id, ranking))
+        self.write_rankings(rankings)
+
+        # Get GAP
+        output = check_output(['python', 'data/lst/lst_gap.py',
+                               'data/lst/lst_test.gold', 'data/lst/lst.out',
+                               'data/lst/lst.result', 'no-mwe']).decode('utf-8')
+
+        return float(output.split()[1])
+
+class EAEvaluator(Evaluator):
+    def __init__(self, w2i, i2w):
+        super().__init__(w2i, i2w, 0)
+
+    def lst(self, encoder):
+        rankings = []
+        for word_id, sentence_id, word, _, candidates, sentence, pos in self.sentences:
+            # Compute scores
+            ranking = []
+            mus, sigmas = encoder(torch.cuda.LongTensor([sentence]), torch.cuda.LongTensor([len(sentence)]))
+            for candidate in candidates:
+                kl = ((1 / sigmas[0][pos]).log() + (sigmas[0][pos].pow(2) + mus[0][pos].pow(2))/2 - 0.5).sum()
+
+                ranking.append((candidate, kl))
+
             ranking.sort(key=itemgetter(1))
             rankings.append((word_id, sentence_id, ranking))
         self.write_rankings(rankings)
