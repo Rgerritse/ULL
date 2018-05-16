@@ -8,12 +8,12 @@ from utils import create_vocab, create_EA_dataset, get_lst_vocab
 
 # %% Parameters
 embed_size = 100
-learning_rate = 0.00001
-num_epochs = 100
-batch_size = 8
+learning_rate = 0.0001
+num_epochs = 10
+batch_size = 12
 window = 5
 model_name = 'EA'
-top_size = 5000 # Top n words to use for training, all other words are mapped to <unk>, use None if you do not want to map any word to <unk>
+top_size = 10000 # Top n words to use for training, all other words are mapped to <unk>, use None if you do not want to map any word to <unk>
 
 #%% Create Vocabularies and Data EmbedAlign
 required_words = get_lst_vocab()
@@ -26,7 +26,7 @@ data_fr = create_EA_dataset("data/hansards/training.fr", vocab_fr, w2i_fr)
 data_length = list(map(len, data_en))
 
 # Create batches
-batches = [(data_en[i:i + batch_size], data_fr[i:i + batch_size], data_length[i:i + batch_size]) for i in range(0, len(data_en), batch_size)][:2500]
+batches = [(data_en[i:i + batch_size], data_fr[i:i + batch_size], data_length[i:i + batch_size]) for i in range(0, len(data_en), batch_size)][:10000]
 
 # %% Initiaze models Embed Align
 importlib.reload(models)
@@ -94,7 +94,7 @@ for epoch in range(saved_epoch, num_epochs):
         print('\r[Epoch {:03d}/{:03d}] Batch {:06d}/{:06d} [{:.1f}/s] '.format(epoch+1, num_epochs, batch+1, len(batches), pace), end='')
 
     # Calculate LST score
-    total_loss /= 2000
+    total_loss /= len(batches)
     score = evaluator.lst(encoder)
     print('Time: {:.1f}s Loss: {:.3f} LST: {:.6f}'.format(time.time() - start_time, total_loss, score))
 
