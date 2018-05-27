@@ -3,13 +3,16 @@ from tqdm import tqdm
 
 from collections import Counter
 
-def create_vocab(top_size, vocab_file, required_words, stop_file):
-    with open(stop_file) as f: # List of stopwords obtained from nltk
+def create_vocab(top_size, vocab_file):
+    with open('stopwords_english') as f: # List of stopwords obtained from nltk
         stop_words = f.read().split()
+        stop_words += list(string.punctuation)
+        stop_words += list(range(10))
+        stop_words = set(stop_words)
 
     with open(vocab_file, 'r') as f:
         tokens = f.read().lower().split()
-        tokens = [word for word in tokens if not (word in stop_words or word in string.punctuation or word.isdigit())]
+        tokens = [word for word in tokens if not word in stop_words]
         counts = Counter(tokens)
 
     if not top_size:
@@ -17,48 +20,19 @@ def create_vocab(top_size, vocab_file, required_words, stop_file):
 
     vocab = set(map(lambda x: x[0], counts.most_common(top_size)))
     vocab.add('<unk>')
-
-    # Merge vocabulary with required words
-    vocab = vocab.union(required_words)
-    vocab = ['<pad>'] + list(vocab)
     vocab_size = len(vocab)
 
     w2i = {k: v for v, k in enumerate(vocab)}
     i2w = {v: k for v, k in enumerate(vocab)}
 
-    return set(vocab), vocab_size, w2i, i2w
-
-def create_BSG_dataset(data_file, window_size, w2i):
-    with open('stopwords') as f: # List of stopwords obtained from nltk
-        stop_words = f.read().split()
-
-    with open(data_file, 'r') as f:
-        sentences = [line.lower().split() for line in f.readlines()]
-
-    targets = []
-    contexts = []
-
-    for sentence in sentences:
-        for i in range(len(sentence)):
-            context = []
-            for j in range(i-window_size, i+window_size+1):
-                if i != j:
-                    if j >= 0 and j < len(sentence) and sentence[j] in w2i:
-                        context.append(w2i[sentence[j]])
-                    else:
-                        context.append(w2i['<unk>'])
-            if context and not (sentence[i] in stop_words or sentence[i] in string.punctuation or sentence[i].isdigit()):
-                if sentence[i] in w2i:
-                    targets.append([w2i[sentence[i]]])
-                else:
-                    targets.append([w2i['<unk>']])
-                contexts.append(context)
-
-    return torch.LongTensor(targets).cuda(), torch.LongTensor(contexts).cuda()
+    return vocab, vocab_size, w2i, i2w
 
 def create_SG_dataset(data_file, window_size, w2i):
     with open('stopwords_english') as f: # List of stopwords obtained from nltk
         stop_words = f.read().split()
+        stop_words += list(string.punctuation)
+        stop_words += list(range(10))
+        stop_words = set(stop_words)
 
     with open(data_file, 'r') as f:
         sentences = [line.lower().split() for line in f.readlines()]
@@ -69,9 +43,7 @@ def create_SG_dataset(data_file, window_size, w2i):
         for i in range(len(sentence)):
             for j in range(i-window_size, i+window_size+1):
                 if i != j and j >= 0 and j < len(sentence):
-                    if (not (sentence[i] in stop_words or sentence[i] in string.punctuation or sentence[i].isdigit() or
-                        sentence[j] in stop_words or  sentence[j] in string.punctuation or sentence[j].isdigit())):
-
+                    if not (sentence[i] in stop_words or sentence[j] in stop_words):
                         if sentence[i] in w2i:
                             targets.append(w2i[sentence[i]])
                         else:
@@ -82,33 +54,6 @@ def create_SG_dataset(data_file, window_size, w2i):
                             contexts.append(w2i['<unk>'])
 
     return torch.LongTensor(targets).cuda(), torch.LongTensor(contexts).cuda()
-
-def create_EA_dataset(data_file, vocab, w2i):
-    with open(data_file) as f:
-        sentences = [line.lower().split() for line in f.readlines()]
-
-    data = []
-    for sentence in sentences:
-        indices = []
-        for word in sentence:
-            if word in vocab:
-                indices.append(w2i[word])
-            else:
-                indices.append(w2i['<unk>'])
-        data.append(torch.cuda.LongTensor(indices))
-
-    return data
-
-def get_lst_vocab():
-    vocab = set()
-    with open('data/lst/lst.gold.candidates', 'r') as f:
-        for line in f.readlines():
-            line = line.strip().split('::')
-            vocab.add(line[0].split('.')[0])
-            for word in line[1].split(';'):
-                if ' ' not in word:
-                    vocab.add(word)
-    return vocab
 
 def save_as_glove(file_name, embeddings, i2w):
     with open(file_name, 'w+') as f:

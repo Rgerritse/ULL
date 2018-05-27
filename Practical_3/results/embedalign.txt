@@ -1,0 +1,170 @@
+2018-05-23 13:02:02,858 : ***** Transfer task : MR *****
+
+
+INFO:tensorflow:Restoring parameters from ../pretrained/ull-practical3-embedalign/model.best.validation.aer.ckpt
+
+2018-05-23 13:02:03,347 : Restoring parameters from ../pretrained/ull-practical3-embedalign/model.best.validation.aer.ckpt
+2018-05-23 13:02:03,601 : Generating sentence embeddings
+2018-05-23 13:02:25,916 : Generated sentence embeddings
+2018-05-23 13:02:25,917 : Training sklearn-LogReg with (inner) 10-fold cross-validation
+2018-05-23 13:02:33,199 : Best param found at split 1: l2reg = 8                 with score 64.38
+2018-05-23 13:02:40,859 : Best param found at split 2: l2reg = 8                 with score 64.62
+2018-05-23 13:02:48,292 : Best param found at split 3: l2reg = 8                 with score 64.34
+2018-05-23 13:02:55,561 : Best param found at split 4: l2reg = 8                 with score 64.62
+2018-05-23 13:03:03,099 : Best param found at split 5: l2reg = 8                 with score 64.64
+2018-05-23 13:03:10,511 : Best param found at split 6: l2reg = 8                 with score 64.75
+2018-05-23 13:03:18,057 : Best param found at split 7: l2reg = 8                 with score 64.24
+2018-05-23 13:03:25,643 : Best param found at split 8: l2reg = 8                 with score 64.51
+2018-05-23 13:03:33,320 : Best param found at split 9: l2reg = 8                 with score 64.61
+2018-05-23 13:03:40,689 : Best param found at split 10: l2reg = 8                 with score 64.66
+2018-05-23 13:03:40,930 : Dev acc : 64.54 Test acc : 64.72
+
+2018-05-23 13:03:40,936 : ***** Transfer task : CR *****
+
+
+INFO:tensorflow:Restoring parameters from ../pretrained/ull-practical3-embedalign/model.best.validation.aer.ckpt
+
+2018-05-23 13:03:41,451 : Restoring parameters from ../pretrained/ull-practical3-embedalign/model.best.validation.aer.ckpt
+2018-05-23 13:03:41,726 : Generating sentence embeddings
+2018-05-23 13:03:49,333 : Generated sentence embeddings
+2018-05-23 13:03:49,334 : Training sklearn-LogReg with (inner) 10-fold cross-validation
+2018-05-23 13:03:51,066 : Best param found at split 1: l2reg = 8                 with score 71.39
+2018-05-23 13:03:52,949 : Best param found at split 2: l2reg = 8                 with score 70.15
+2018-05-23 13:03:54,798 : Best param found at split 3: l2reg = 8                 with score 70.62
+2018-05-23 13:03:56,643 : Best param found at split 4: l2reg = 8                 with score 70.71
+2018-05-23 13:03:58,684 : Best param found at split 5: l2reg = 4                 with score 70.47
+2018-05-23 13:04:00,540 : Best param found at split 6: l2reg = 8                 with score 71.03
+2018-05-23 13:04:02,372 : Best param found at split 7: l2reg = 4                 with score 70.15
+2018-05-23 13:04:04,231 : Best param found at split 8: l2reg = 8                 with score 70.42
+2018-05-23 13:04:06,141 : Best param found at split 9: l2reg = 8                 with score 70.99
+2018-05-23 13:04:07,999 : Best param found at split 10: l2reg = 8                 with score 70.4
+2018-05-23 13:04:08,058 : Dev acc : 70.63 Test acc : 70.65
+
+2018-05-23 13:04:08,059 : ***** Transfer task : MPQA *****
+
+
+INFO:tensorflow:Restoring parameters from ../pretrained/ull-practical3-embedalign/model.best.validation.aer.ckpt
+
+2018-05-23 13:04:08,624 : Restoring parameters from ../pretrained/ull-practical3-embedalign/model.best.validation.aer.ckpt
+2018-05-23 13:04:08,886 : Generating sentence embeddings
+2018-05-23 13:04:16,775 : Generated sentence embeddings
+2018-05-23 13:04:16,776 : Training sklearn-LogReg with (inner) 10-fold cross-validation
+2018-05-23 13:04:26,638 : Best param found at split 1: l2reg = 4                 with score 84.04
+2018-05-23 13:04:36,894 : Best param found at split 2: l2reg = 8                 with score 83.87
+2018-05-23 13:04:47,305 : Best param found at split 3: l2reg = 4                 with score 83.8
+2018-05-23 13:04:57,409 : Best param found at split 4: l2reg = 8                 with score 84.15
+2018-05-23 13:05:07,502 : Best param found at split 5: l2reg = 8                 with score 84.0
+2018-05-23 13:05:17,686 : Best param found at split 6: l2reg = 8                 with score 83.8
+2018-05-23 13:05:28,039 : Best param found at split 7: l2reg = 8                 with score 83.79
+2018-05-23 13:05:38,795 : Best param found at split 8: l2reg = 8                 with score 83.97
+2018-05-23 13:05:49,372 : Best param found at split 9: l2reg = 8                 with score 83.71
+2018-05-23 13:06:00,221 : Best param found at split 10: l2reg = 8                 with score 83.76
+2018-05-23 13:06:00,541 : Dev acc : 83.89 Test acc : 83.78
+
+2018-05-23 13:06:00,542 : ***** Transfer task : SUBJ *****
+
+
+INFO:tensorflow:Restoring parameters from ../pretrained/ull-practical3-embedalign/model.best.validation.aer.ckpt
+
+2018-05-23 13:06:01,049 : Restoring parameters from ../pretrained/ull-practical3-embedalign/model.best.validation.aer.ckpt
+2018-05-23 13:06:01,311 : Generating sentence embeddings
+2018-05-23 13:06:25,152 : Generated sentence embeddings
+2018-05-23 13:06:25,153 : Training sklearn-LogReg with (inner) 10-fold cross-validation
+2018-05-23 13:06:31,655 : Best param found at split 1: l2reg = 8                 with score 78.91
+2018-05-23 13:06:38,448 : Best param found at split 2: l2reg = 8                 with score 79.1
+2018-05-23 13:06:45,099 : Best param found at split 3: l2reg = 8                 with score 79.14
+2018-05-23 13:06:51,848 : Best param found at split 4: l2reg = 8                 with score 79.29
+2018-05-23 13:06:58,509 : Best param found at split 5: l2reg = 8                 with score 79.27
+2018-05-23 13:07:05,129 : Best param found at split 6: l2reg = 8                 with score 79.18
+2018-05-23 13:07:11,778 : Best param found at split 7: l2reg = 8                 with score 79.14
+2018-05-23 13:07:18,330 : Best param found at split 8: l2reg = 8                 with score 79.14
+2018-05-23 13:07:24,902 : Best param found at split 9: l2reg = 8                 with score 79.46
+2018-05-23 13:07:31,722 : Best param found at split 10: l2reg = 8                 with score 79.07
+2018-05-23 13:07:31,931 : Dev acc : 79.17 Test acc : 79.15
+
+2018-05-23 13:07:31,932 : ***** Transfer task : SST Binary classification *****
+
+
+INFO:tensorflow:Restoring parameters from ../pretrained/ull-practical3-embedalign/model.best.validation.aer.ckpt
+
+2018-05-23 13:07:32,689 : Restoring parameters from ../pretrained/ull-practical3-embedalign/model.best.validation.aer.ckpt
+2018-05-23 13:07:32,938 : Computing embedding for dev
+2018-05-23 13:07:34,662 : Computed dev embeddings
+2018-05-23 13:07:34,662 : Computing embedding for train
+2018-05-23 13:08:55,735 : Computed train embeddings
+2018-05-23 13:08:55,735 : Computing embedding for test
+2018-05-23 13:08:59,205 : Computed test embeddings
+2018-05-23 13:08:59,205 : Training sklearn-LogReg with standard validation..
+2018-05-23 13:09:14,763 : [('reg:0.25', 64.79), ('reg:0.5', 64.91), ('reg:1', 65.25), ('reg:2', 65.48), ('reg:4', 66.28), ('reg:8', 67.2)]
+2018-05-23 13:09:14,764 : Validation : best param found is reg = 8 with score             67.2
+2018-05-23 13:09:14,765 : Evaluating...
+2018-05-23 13:09:19,219 : 
+Dev acc : 67.2 Test acc : 67.11 for             SST Binary classification
+
+2018-05-23 13:09:19,220 : ***** Transfer task : TREC *****
+
+
+INFO:tensorflow:Restoring parameters from ../pretrained/ull-practical3-embedalign/model.best.validation.aer.ckpt
+
+2018-05-23 13:09:19,799 : Restoring parameters from ../pretrained/ull-practical3-embedalign/model.best.validation.aer.ckpt
+2018-05-23 13:09:27,400 : Computed train embeddings
+2018-05-23 13:09:27,969 : Computed test embeddings
+2018-05-23 13:09:27,970 : Training sklearn-LogReg with 10-fold cross-validation
+2018-05-23 13:10:05,804 : [('reg:0.5', 48.53), ('reg:1', 49.21), ('reg:2', 49.84), ('reg:4', 50.41), ('reg:8', 51.21), ('reg:16', 52.42), ('reg:32', 53.56)]
+2018-05-23 13:10:05,804 : Cross-validation : best param found is reg = 32             with score 53.56
+2018-05-23 13:10:05,805 : Evaluating...
+2018-05-23 13:10:06,985 : 
+Dev acc : 53.56 Test acc : 57.4             for TREC
+
+2018-05-23 13:10:06,986 : ***** Transfer task : MRPC *****
+
+
+INFO:tensorflow:Restoring parameters from ../pretrained/ull-practical3-embedalign/model.best.validation.aer.ckpt
+
+2018-05-23 13:10:07,585 : Restoring parameters from ../pretrained/ull-practical3-embedalign/model.best.validation.aer.ckpt
+2018-05-23 13:10:07,836 : Computing embedding for test
+2018-05-23 13:10:15,557 : Computed test embeddings
+2018-05-23 13:10:15,558 : Computing embedding for train
+2018-05-23 13:10:33,459 : Computed train embeddings
+2018-05-23 13:10:33,461 : Training sklearn-LogReg with 10-fold cross-validation
+2018-05-23 13:10:38,976 : [('reg:0.5', 70.51), ('reg:1', 70.24), ('reg:2', 70.37), ('reg:4', 70.42), ('reg:8', 70.54), ('reg:16', 70.64), ('reg:32', 70.32)]
+2018-05-23 13:10:38,976 : Cross-validation : best param found is reg = 16             with score 70.64
+2018-05-23 13:10:38,976 : Evaluating...
+2018-05-23 13:10:39,124 : Dev acc : 70.64 Test acc 70.96; Test F1 80.1 for MRPC.
+
+2018-05-23 13:10:39,124 : ***** Transfer task : SICK-Entailment*****
+
+
+INFO:tensorflow:Restoring parameters from ../pretrained/ull-practical3-embedalign/model.best.validation.aer.ckpt
+
+2018-05-23 13:10:39,717 : Restoring parameters from ../pretrained/ull-practical3-embedalign/model.best.validation.aer.ckpt
+2018-05-23 13:10:39,969 : Computing embedding for dev
+2018-05-23 13:10:41,380 : Computed dev embeddings
+2018-05-23 13:10:41,381 : Computing embedding for train
+2018-05-23 13:10:55,200 : Computed train embeddings
+2018-05-23 13:10:55,201 : Computing embedding for test
+2018-05-23 13:11:10,611 : Computed test embeddings
+2018-05-23 13:11:10,614 : Training sklearn-LogReg with standard validation..
+2018-05-23 13:11:12,086 : [('reg:0.25', 71.8), ('reg:0.5', 72.2), ('reg:1', 71.8), ('reg:2', 71.2), ('reg:4', 72.2), ('reg:8', 72.6)]
+2018-05-23 13:11:12,086 : Validation : best param found is reg = 8 with score             72.6
+2018-05-23 13:11:12,087 : Evaluating...
+2018-05-23 13:11:12,480 : 
+Dev acc : 72.6 Test acc : 74.75 for                        SICK entailment
+
+2018-05-23 13:11:12,481 : ***** Transfer task : STS14 *****
+
+
+INFO:tensorflow:Restoring parameters from ../pretrained/ull-practical3-embedalign/model.best.validation.aer.ckpt
+
+2018-05-23 13:11:13,065 : Restoring parameters from ../pretrained/ull-practical3-embedalign/model.best.validation.aer.ckpt
+2018-05-23 13:11:14,749 : deft-forum : pearson = 0.3478, spearman = 0.3630
+2018-05-23 13:11:16,032 : deft-news : pearson = 0.6220, spearman = 0.5783
+2018-05-23 13:11:18,097 : headlines : pearson = 0.5782, spearman = 0.5705
+2018-05-23 13:11:20,584 : images : pearson = 0.6578, spearman = 0.6439
+2018-05-23 13:11:22,602 : OnWN : pearson = 0.6588, spearman = 0.7165
+2018-05-23 13:11:25,049 : tweet-news : pearson = 0.6233, spearman = 0.5527
+2018-05-23 13:11:25,049 : ALL (weighted average) : Pearson = 0.5951,             Spearman = 0.5866
+2018-05-23 13:11:25,050 : ALL (average) : Pearson = 0.5813,             Spearman = 0.5708
+
+{'MR': {'devacc': 64.54, 'acc': 64.72, 'ntest': 10662, 'ndev': 10662}, 'STS14': {'headlines': {'nsamples': 750, 'pearson': (0.5781994822837789, 4.020025487012308e-68), 'spearman': SpearmanrResult(correlation=0.5705232857978165, pvalue=5.589791453157285e-66)}, 'deft-forum': {'nsamples': 450, 'pearson': (0.34780780641411696, 3.0532780484045873e-14), 'spearman': SpearmanrResult(correlation=0.36300579768447816, pvalue=1.8358437299365898e-15)}, 'images': {'nsamples': 750, 'pearson': (0.6578237151263411, 3.6541469176202953e-94), 'spearman': SpearmanrResult(correlation=0.6438621123340441, pvalue=4.9441358581162626e-89)}, 'deft-news': {'nsamples': 300, 'pearson': (0.6220449311217088, 1.6081871879181536e-33), 'spearman': SpearmanrResult(correlation=0.578333454614915, pvalue=3.56018796171822e-28)}, 'all': {'pearson': {'mean': 0.5813380634460095, 'wmean': 0.595135659887477}, 'spearman': {'mean': 0.5708282058121786, 'wmean': 0.5865533686060662}}, 'tweet-news': {'nsamples': 750, 'pearson': (0.6233063994503444, 6.0065587511042e-82), 'spearman': SpearmanrResult(correlation=0.552714320253843, pvalue=3.22156860724007e-61)}, 'OnWN': {'nsamples': 750, 'pearson': (0.6588460462797665, 1.5005001151401518e-94), 'spearman': SpearmanrResult(correlation=0.7165302641879749, pvalue=4.038459846586195e-119)}}, 'MPQA': {'devacc': 83.89, 'acc': 83.78, 'ntest': 10606, 'ndev': 10606}, 'SST2': {'devacc': 67.2, 'acc': 67.11, 'ntest': 1821, 'ndev': 872}, 'SUBJ': {'devacc': 79.17, 'acc': 79.15, 'ntest': 10000, 'ndev': 10000}, 'TREC': {'devacc': 53.56, 'acc': 57.4, 'ntest': 500, 'ndev': 5452}, 'SICKEntailment': {'devacc': 72.6, 'acc': 74.75, 'ntest': 4927, 'ndev': 500}, 'CR': {'devacc': 70.63, 'acc': 70.65, 'ntest': 3775, 'ndev': 3775}, 'MRPC': {'devacc': 70.64, 'acc': 70.96, 'f1': 80.1, 'ntest': 1725, 'ndev': 4076}}
+
