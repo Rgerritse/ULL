@@ -1,0 +1,153 @@
+2018-05-29 00:25:21,967 : ***** Transfer task : MR *****
+
+
+2018-05-29 00:25:22,275 : Found 12771 words with word vectors, out of         20328 words
+2018-05-29 00:25:22,283 : Generating sentence embeddings
+2018-05-29 00:25:22,640 : Generated sentence embeddings
+2018-05-29 00:25:22,641 : Training sklearn-LogReg with (inner) 10-fold cross-validation
+2018-05-29 00:25:34,031 : Best param found at split 1: l2reg = 1                 with score 65.9
+2018-05-29 00:25:45,664 : Best param found at split 2: l2reg = 0.25                 with score 66.14
+2018-05-29 00:25:57,461 : Best param found at split 3: l2reg = 4                 with score 65.71
+2018-05-29 00:26:09,787 : Best param found at split 4: l2reg = 8                 with score 65.71
+2018-05-29 00:26:21,338 : Best param found at split 5: l2reg = 8                 with score 66.17
+2018-05-29 00:26:33,090 : Best param found at split 6: l2reg = 0.25                 with score 66.08
+2018-05-29 00:26:44,928 : Best param found at split 7: l2reg = 0.5                 with score 66.1
+2018-05-29 00:26:56,867 : Best param found at split 8: l2reg = 0.25                 with score 65.9
+2018-05-29 00:27:08,553 : Best param found at split 9: l2reg = 4                 with score 65.97
+2018-05-29 00:27:21,227 : Best param found at split 10: l2reg = 4                 with score 65.53
+2018-05-29 00:27:21,448 : Dev acc : 65.92 Test acc : 65.88
+
+2018-05-29 00:27:21,449 : ***** Transfer task : CR *****
+
+
+2018-05-29 00:27:21,597 : Found 4454 words with word vectors, out of         5677 words
+2018-05-29 00:27:21,604 : Generating sentence embeddings
+2018-05-29 00:27:21,724 : Generated sentence embeddings
+2018-05-29 00:27:21,724 : Training sklearn-LogReg with (inner) 10-fold cross-validation
+2018-05-29 00:27:25,963 : Best param found at split 1: l2reg = 1                 with score 73.51
+2018-05-29 00:27:30,007 : Best param found at split 2: l2reg = 1                 with score 73.21
+2018-05-29 00:27:34,538 : Best param found at split 3: l2reg = 1                 with score 73.27
+2018-05-29 00:27:38,700 : Best param found at split 4: l2reg = 0.25                 with score 73.89
+2018-05-29 00:27:42,847 : Best param found at split 5: l2reg = 2                 with score 73.18
+2018-05-29 00:27:46,667 : Best param found at split 6: l2reg = 0.25                 with score 73.95
+2018-05-29 00:27:50,478 : Best param found at split 7: l2reg = 0.5                 with score 73.33
+2018-05-29 00:27:54,483 : Best param found at split 8: l2reg = 0.25                 with score 73.63
+2018-05-29 00:27:58,738 : Best param found at split 9: l2reg = 0.5                 with score 73.79
+2018-05-29 00:28:02,865 : Best param found at split 10: l2reg = 0.5                 with score 73.64
+2018-05-29 00:28:02,930 : Dev acc : 73.54 Test acc : 73.29
+
+2018-05-29 00:28:02,932 : ***** Transfer task : MPQA *****
+
+
+2018-05-29 00:28:03,143 : Found 5958 words with word vectors, out of         6241 words
+2018-05-29 00:28:03,149 : Generating sentence embeddings
+2018-05-29 00:28:03,307 : Generated sentence embeddings
+2018-05-29 00:28:03,307 : Training sklearn-LogReg with (inner) 10-fold cross-validation
+2018-05-29 00:28:16,087 : Best param found at split 1: l2reg = 0.25                 with score 84.58
+2018-05-29 00:28:28,786 : Best param found at split 2: l2reg = 0.25                 with score 85.06
+2018-05-29 00:28:41,587 : Best param found at split 3: l2reg = 0.25                 with score 84.54
+2018-05-29 00:28:57,562 : Best param found at split 4: l2reg = 0.25                 with score 84.89
+2018-05-29 00:29:13,662 : Best param found at split 5: l2reg = 1                 with score 84.57
+2018-05-29 00:29:29,825 : Best param found at split 6: l2reg = 0.25                 with score 84.69
+2018-05-29 00:29:49,022 : Best param found at split 7: l2reg = 0.25                 with score 84.72
+2018-05-29 00:30:08,904 : Best param found at split 8: l2reg = 0.5                 with score 84.64
+2018-05-29 00:30:28,555 : Best param found at split 9: l2reg = 0.5                 with score 84.81
+2018-05-29 00:30:47,130 : Best param found at split 10: l2reg = 0.25                 with score 84.83
+2018-05-29 00:30:47,378 : Dev acc : 84.73 Test acc : 84.83
+
+2018-05-29 00:30:47,381 : ***** Transfer task : SUBJ *****
+
+
+2018-05-29 00:30:47,811 : Found 14347 words with word vectors, out of         22639 words
+2018-05-29 00:30:47,824 : Generating sentence embeddings
+2018-05-29 00:30:48,225 : Generated sentence embeddings
+2018-05-29 00:30:48,228 : Training sklearn-LogReg with (inner) 10-fold cross-validation
+2018-05-29 00:31:10,934 : Best param found at split 1: l2reg = 1                 with score 84.8
+2018-05-29 00:31:33,293 : Best param found at split 2: l2reg = 0.25                 with score 84.77
+2018-05-29 00:31:56,189 : Best param found at split 3: l2reg = 8                 with score 84.81
+2018-05-29 00:32:17,665 : Best param found at split 4: l2reg = 8                 with score 84.7
+2018-05-29 00:32:40,446 : Best param found at split 5: l2reg = 8                 with score 84.83
+2018-05-29 00:33:03,757 : Best param found at split 6: l2reg = 8                 with score 84.94
+2018-05-29 00:33:27,031 : Best param found at split 7: l2reg = 4                 with score 84.76
+2018-05-29 00:33:50,808 : Best param found at split 8: l2reg = 0.25                 with score 85.17
+2018-05-29 00:34:13,398 : Best param found at split 9: l2reg = 8                 with score 84.79
+2018-05-29 00:34:35,701 : Best param found at split 10: l2reg = 2                 with score 84.46
+2018-05-29 00:34:36,119 : Dev acc : 84.8 Test acc : 84.56
+
+2018-05-29 00:34:36,130 : ***** Transfer task : SST Binary classification *****
+
+
+2018-05-29 00:34:36,702 : Found 11736 words with word vectors, out of         17561 words
+2018-05-29 00:34:36,710 : Computing embedding for train
+2018-05-29 00:34:38,459 : Computed train embeddings
+2018-05-29 00:34:38,461 : Computing embedding for test
+2018-05-29 00:34:38,538 : Computed test embeddings
+2018-05-29 00:34:38,540 : Computing embedding for dev
+2018-05-29 00:34:38,573 : Computed dev embeddings
+2018-05-29 00:34:38,575 : Training sklearn-LogReg with standard validation..
+2018-05-29 00:34:48,431 : [('reg:0.25', 69.27), ('reg:0.5', 69.27), ('reg:1', 69.27), ('reg:2', 69.27), ('reg:4', 69.27), ('reg:8', 69.27)]
+2018-05-29 00:34:48,434 : Validation : best param found is reg = 0.25 with score             69.27
+2018-05-29 00:34:48,436 : Evaluating...
+2018-05-29 00:34:50,065 : 
+Dev acc : 69.27 Test acc : 66.78 for             SST Binary classification
+
+2018-05-29 00:34:50,068 : ***** Transfer task : TREC *****
+
+
+2018-05-29 00:34:50,295 : Found 4987 words with word vectors, out of         9767 words
+2018-05-29 00:34:50,436 : Computed train embeddings
+2018-05-29 00:34:50,450 : Computed test embeddings
+2018-05-29 00:34:50,454 : Training sklearn-LogReg with 10-fold cross-validation
+2018-05-29 00:36:29,308 : [('reg:0.5', 64.8), ('reg:1', 64.95), ('reg:2', 65.02), ('reg:4', 65.06), ('reg:8', 65.13), ('reg:16', 65.13), ('reg:32', 65.15)]
+2018-05-29 00:36:29,308 : Cross-validation : best param found is reg = 32             with score 65.15
+2018-05-29 00:36:29,308 : Evaluating...
+2018-05-29 00:36:31,653 : 
+Dev acc : 65.15 Test acc : 69.0             for TREC
+
+2018-05-29 00:36:31,658 : ***** Transfer task : MRPC *****
+
+
+2018-05-29 00:36:31,963 : Found 9963 words with word vectors, out of         19556 words
+2018-05-29 00:36:31,967 : Computing embedding for train
+2018-05-29 00:36:32,257 : Computed train embeddings
+2018-05-29 00:36:32,259 : Computing embedding for test
+2018-05-29 00:36:32,382 : Computed test embeddings
+2018-05-29 00:36:32,389 : Training sklearn-LogReg with 10-fold cross-validation
+2018-05-29 00:36:44,309 : [('reg:0.5', 70.14), ('reg:1', 70.02), ('reg:2', 70.04), ('reg:4', 69.97), ('reg:8', 69.94), ('reg:16', 69.92), ('reg:32', 69.94)]
+2018-05-29 00:36:44,310 : Cross-validation : best param found is reg = 0.5             with score 70.14
+2018-05-29 00:36:44,312 : Evaluating...
+2018-05-29 00:36:44,489 : Dev acc : 70.14 Test acc 69.68; Test F1 79.09 for MRPC.
+
+2018-05-29 00:36:44,491 : ***** Transfer task : SICK-Entailment*****
+
+
+2018-05-29 00:36:44,728 : Found 1902 words with word vectors, out of         2414 words
+
+2018-05-29 00:36:44,742 : Computing embedding for train
+2018-05-29 00:36:44,948 : Computed train embeddings
+2018-05-29 00:36:44,948 : Computing embedding for test
+2018-05-29 00:36:45,173 : Computed test embeddings
+2018-05-29 00:36:45,173 : Computing embedding for dev
+2018-05-29 00:36:45,198 : Computed dev embeddings
+2018-05-29 00:36:45,212 : Training sklearn-LogReg with standard validation..
+2018-05-29 00:36:49,437 : [('reg:0.25', 72.4), ('reg:0.5', 71.8), ('reg:1', 71.8), ('reg:2', 72.0), ('reg:4', 72.0), ('reg:8', 72.0)]
+2018-05-29 00:36:49,437 : Validation : best param found is reg = 0.25 with score             72.4
+2018-05-29 00:36:49,438 : Evaluating...
+2018-05-29 00:36:50,086 : 
+Dev acc : 72.4 Test acc : 73.94 for                        SICK entailment
+
+2018-05-29 00:36:50,088 : ***** Transfer task : STS14 *****
+
+
+2018-05-29 00:36:50,309 : Found 7451 words with word vectors, out of         9119 words
+2018-05-29 00:36:50,351 : deft-forum : pearson = 0.2643, spearman = 0.2646
+2018-05-29 00:36:50,383 : deft-news : pearson = 0.4815, spearman = 0.4785
+2018-05-29 00:36:50,447 : headlines : pearson = 0.4023, spearman = 0.3713
+2018-05-29 00:36:50,513 : images : pearson = 0.2722, spearman = 0.3126
+2018-05-29 00:36:50,578 : OnWN : pearson = 0.4267, spearman = 0.4977
+2018-05-29 00:36:50,648 : tweet-news : pearson = 0.6218, spearman = 0.5884
+2018-05-29 00:36:50,649 : ALL (weighted average) : Pearson = 0.4148,             Spearman = 0.4240
+2018-05-29 00:36:50,650 : ALL (average) : Pearson = 0.4115,             Spearman = 0.4188
+
+{'MPQA': {'ntest': 10606, 'acc': 84.83, 'devacc': 84.73, 'ndev': 10606}, 'STS14': {'headlines': {'pearson': (0.402308059714435, 1.511217405842071e-30), 'spearman': SpearmanrResult(correlation=0.3713100148269353, pvalue=6.245365686503887e-26), 'nsamples': 750}, 'deft-news': {'pearson': (0.481507311624856, 8.1042374897703345e-19), 'spearman': SpearmanrResult(correlation=0.4785368416313542, pvalue=1.4161797787541095e-18), 'nsamples': 300}, 'deft-forum': {'pearson': (0.2643331739797134, 1.2458249148244712e-08), 'spearman': SpearmanrResult(correlation=0.2645874760944642, pvalue=1.20501862435355e-08), 'nsamples': 450}, 'images': {'pearson': (0.2722202240497072, 3.2904778766623044e-14), 'spearman': SpearmanrResult(correlation=0.3125803070888646, pvalue=1.8398704552841097e-18), 'nsamples': 750}, 'all': {'pearson': {'mean': 0.41147100993088076, 'wmean': 0.4148376806036972}, 'spearman': {'mean': 0.4188453670384857, 'wmean': 0.42402302136286313}}, 'tweet-news': {'pearson': (0.6217757386563612, 1.9280783367487782e-81), 'spearman': SpearmanrResult(correlation=0.5883997088542208, pvalue=4.6446341299460244e-71), 'nsamples': 750}, 'OnWN': {'pearson': (0.4266815515602121, 1.5508303661346334e-34), 'spearman': SpearmanrResult(correlation=0.4976578537350748, pvalue=3.502223082566602e-48), 'nsamples': 750}}, 'SICKEntailment': {'ntest': 4927, 'acc': 73.94, 'devacc': 72.4, 'ndev': 500}, 'SST2': {'ntest': 1821, 'acc': 66.78, 'devacc': 69.27, 'ndev': 872}, 'MR': {'ntest': 10662, 'acc': 65.88, 'devacc': 65.92, 'ndev': 10662}, 'MRPC': {'ntest': 1725, 'acc': 69.68, 'devacc': 70.14, 'f1': 79.09, 'ndev': 4076}, 'SUBJ': {'ntest': 10000, 'acc': 84.56, 'devacc': 84.8, 'ndev': 10000}, 'CR': {'ntest': 3775, 'acc': 73.29, 'devacc': 73.54, 'ndev': 3775}, 'TREC': {'ntest': 500, 'acc': 69.0, 'devacc': 65.15, 'ndev': 5452}}
+
