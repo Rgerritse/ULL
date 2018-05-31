@@ -22,4 +22,13 @@ The expected data locations are:
 data/hansards/ for the hansards dataset
 data/lst for the lst dataset and evaluation script
 
+### Practical 3: Evaluating Sentence Representations
+The skip-gram model is the same as for practical 2, with some no longer needed code removed.<br>
+The gensim model is trained as follows:<br>
 
+~~~~
+from gensim.models import Word2Vec
+from gensim.models.word2vec import LineSentence
+model = Word2Vec(LineSentence('data/europarl/training.en'), window=5, sg=1, min_count=5, hs=0, negative=15)
+model.wv.save_word2vec_format('embeddings.txt')
+~~~~
